@@ -1,0 +1,329 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum TaskCreator {
+  USER
+  AGENT
+  SYSTEM
+}
+
+enum NotificationType {
+  TASK_DUE_24H
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum InsightType {
+  TREND
+  COMPARISON
+  ATTENTION
+  RECOMMENDATION
+  ANOMALY
+  SUMMARY
+}
+
+enum InsightStatus {
+  ACTIVE
+  EXPIRED
+  DISMISSED
+}
+
+enum AIMessageRole {
+  USER
+  ASSISTANT
+  TOOL
+  SYSTEM
+}
+
+enum AIExecutionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REJECTED
+}
+
+enum ReportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id                   String                @id @default(uuid()) @db.Uuid
+  name                 String
+  email                String                @unique
+  passwordHash         String                @map("password_hash")
+  timezone             String                @default("America/Sao_Paulo")
+  notificationsEnabled Boolean               @default(true) @map("notifications_enabled")
+  createdAt            DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  subjects             Subject[]
+  tasks                AcademicTask[]
+  studySessions        StudySession[]
+  taskHistory          TaskHistory[]
+  pushDevices          PushDevice[]
+  notificationDeliveries NotificationDelivery[]
+  aiConversations      AIConversation[]
+  aiToolExecutions     AIToolExecution[]
+  insights             Insight[]
+  weeklyReports        WeeklyReport[]
+
+  @@map("users")
+}
+
+model Subject {
+  id          String         @id @default(uuid()) @db.Uuid
+  userId      String         @map("user_id") @db.Uuid
+  name        String
+  professor   String?
+  workloadHours Decimal?     @map("workload_hours") @db.Decimal(6, 2)
+  description String?
+  startDate   DateTime?      @map("start_date") @db.Date
+  endDate     DateTime?      @map("end_date") @db.Date
+  archivedAt  DateTime?      @map("archived_at") @db.Timestamptz(6)
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks       AcademicTask[]
+  studySessions StudySession[]
+
+  @@index([userId])
+  @@index([userId, archivedAt])
+  @@map("subjects")
+}
+
+model AcademicTask {
+  id                  String         @id @default(uuid()) @db.Uuid
+  userId              String         @map("user_id") @db.Uuid
+  subjectId           String         @map("subject_id") @db.Uuid
+  title               String
+  description         String?
+  status              TaskStatus     @default(TODO)
+  priority            TaskPriority   @default(MEDIUM)
+  difficulty          TaskDifficulty @default(MEDIUM)
+  dueDate             DateTime?      @map("due_date") @db.Timestamptz(6)
+  estimatedMinutes    Int?           @map("estimated_minutes")
+  completedAt         DateTime?      @map("completed_at") @db.Timestamptz(6)
+  createdBy           TaskCreator     @default(USER) @map("created_by")
+  agentExecutionId    String?        @map("agent_execution_id") @db.Uuid
+  createdAt           DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject             Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  studySessions       StudySession[]
+  history             TaskHistory[]
+  notificationDeliveries NotificationDelivery[]
+  agentExecution      AIToolExecution? @relation(fields: [agentExecutionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([userId, dueDate])
+  @@index([subjectId, status])
+  @@index([subjectId, difficulty])
+  @@map("academic_tasks")
+}
+
+model StudySession {
+  id          String        @id @default(uuid()) @db.Uuid
+  userId      String        @map("user_id") @db.Uuid
+  subjectId   String        @map("subject_id") @db.Uuid
+  taskId      String?       @map("task_id") @db.Uuid
+  startedAt   DateTime      @map("started_at") @db.Timestamptz(6)
+  endedAt     DateTime?     @map("ended_at") @db.Timestamptz(6)
+  durationSeconds Int?      @map("duration_seconds")
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject     Subject       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  task        AcademicTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([userId, startedAt])
+  @@index([subjectId, startedAt])
+  @@index([taskId])
+  @@map("study_sessions")
+}
+
+model TaskHistory {
+  id          String         @id @default(uuid()) @db.Uuid
+  taskId      String         @map("task_id") @db.Uuid
+  userId      String         @map("user_id") @db.Uuid
+  fromStatus  TaskStatus?    @map("from_status")
+  toStatus    TaskStatus?    @map("to_status")
+  fromPriority TaskPriority? @map("from_priority")
+  toPriority   TaskPriority? @map("to_priority")
+  fromDueDate  DateTime?     @map("from_due_date") @db.Timestamptz(6)
+  toDueDate    DateTime?     @map("to_due_date") @db.Timestamptz(6)
+  changedAt    DateTime       @default(now()) @map("changed_at") @db.Timestamptz(6)
+
+  task        AcademicTask   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, changedAt])
+  @@index([userId, changedAt])
+  @@map("task_history")
+}
+
+model PushDevice {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  provider    String
+  token       String   @unique
+  platform    String
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries  NotificationDelivery[]
+
+  @@index([userId, active])
+  @@map("push_devices")
+}
+
+model NotificationDelivery {
+  id          String               @id @default(uuid()) @db.Uuid
+  userId      String               @map("user_id") @db.Uuid
+  taskId      String               @map("task_id") @db.Uuid
+  deviceId    String?              @map("device_id") @db.Uuid
+  type        NotificationType
+  status      NotificationStatus   @default(PENDING)
+  scheduledAt DateTime             @map("scheduled_at") @db.Timestamptz(6)
+  sentAt      DateTime?            @map("sent_at") @db.Timestamptz(6)
+  errorMessage String?             @map("error_message")
+  createdAt   DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task        AcademicTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  device      PushDevice? @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+
+  @@index([userId, scheduledAt, status])
+  @@index([taskId, type])
+  @@map("notification_deliveries")
+}
+
+model AIConversation {
+  id          String       @id @default(uuid()) @db.Uuid
+  userId      String       @map("user_id") @db.Uuid
+  title       String?
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages    AIMessage[]
+  executions  AIToolExecution[]
+
+  @@index([userId, updatedAt])
+  @@map("ai_conversations")
+}
+
+model AIMessage {
+  id             String          @id @default(uuid()) @db.Uuid
+  conversationId String          @map("conversation_id") @db.Uuid
+  role           AIMessageRole
+  content        String
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  conversation   AIConversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("ai_messages")
+}
+
+model AIToolExecution {
+  id             String             @id @default(uuid()) @db.Uuid
+  userId         String             @map("user_id") @db.Uuid
+  conversationId String?            @map("conversation_id") @db.Uuid
+  intent         String
+  toolName       String             @map("tool_name")
+  inputJson      Json               @map("input_json")
+  outputJson     Json?              @map("output_json")
+  status         AIExecutionStatus  @default(PENDING)
+  model          String?
+  promptVersion  String?            @map("prompt_version")
+  createdAt      DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  completedAt    DateTime?          @map("completed_at") @db.Timestamptz(6)
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation    AIConversation?  @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  createdTasks    AcademicTask[]
+
+  @@index([userId, createdAt])
+  @@index([toolName, createdAt])
+  @@map("ai_tool_executions")
+}
+
+model Insight {
+  id             String        @id @default(uuid()) @db.Uuid
+  userId         String        @map("user_id") @db.Uuid
+  type           InsightType
+  title          String
+  description    String
+  confidence     Decimal?      @db.Decimal(5, 4)
+  periodStart    DateTime      @map("period_start") @db.Timestamptz(6)
+  periodEnd      DateTime      @map("period_end") @db.Timestamptz(6)
+  metricsJson    Json          @map("metrics_json")
+  datasetVersion String?       @map("dataset_version")
+  model          String?
+  promptVersion  String?       @map("prompt_version")
+  status         InsightStatus @default(ACTIVE)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt      DateTime?     @map("expires_at") @db.Timestamptz(6)
+
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status, createdAt])
+  @@index([userId, periodStart, periodEnd])
+  @@map("insights")
+}
+
+model WeeklyReport {
+  id             String       @id @default(uuid()) @db.Uuid
+  userId         String       @map("user_id") @db.Uuid
+  periodStart    DateTime     @map("period_start") @db.Date
+  periodEnd      DateTime     @map("period_end") @db.Date
+  status         ReportStatus @default(PENDING)
+  storageKey     String?      @map("storage_key")
+  fileName       String?      @map("file_name")
+  generatedAt    DateTime?    @map("generated_at") @db.Timestamptz(6)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, periodStart, periodEnd])
+  @@index([userId, periodEnd])
+  @@map("weekly_reports")
+}
