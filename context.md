@@ -1,134 +1,127 @@
 # Project Context
 
 > Memória operacional condensada do `SPEC.md`.
->
-> **Regra de fonte de verdade:** este arquivo não substitui `SPEC.md`. Quando houver necessidade de detalhes, requisitos específicos ou decisões não resumidas aqui, consulte `SPEC.md`. Para regras visuais, consulte também `DESIGN.md`.
+
+> **Regra de fonte de verdade:** este arquivo não substitui `SPEC.md`. Quando houver necessidade de requisitos, regras de negócio, decisões arquiteturais ou detalhes específicos, consulte `SPEC.md`. Para regras visuais, consulte `DESIGN.md`. Para o modelo físico de dados, consulte `schema.prisma`.
 
 ---
 
-## 1. Visão geral
+# 1. Propósito do projeto
 
-O projeto é uma aplicação multiplataforma composta por:
+O projeto é uma aplicação multiplataforma para organização e acompanhamento acadêmico, composta por:
 
-- Frontend Web em React;
-- Aplicação Mobile em React Native;
-- Backend em Node.js com NestJS + Fastify;
-- PostgreSQL como banco relacional;
-- Prisma como ORM;
-- processamento e preparação de dados analíticos com Python + Pandas;
-- camada de Inteligência Artificial com um Agente de IA integrado.
+* Frontend Web em React + TypeScript;
+* Aplicação Mobile em React Native + TypeScript;
+* Backend em Node.js com NestJS + Fastify;
+* PostgreSQL como banco de dados relacional;
+* Prisma como ORM;
+* serviço analítico em Python + FastAPI + Pandas;
+* camada de Inteligência Artificial com Agente de IA.
 
-O sistema deverá centralizar regras de negócio no Backend e disponibilizar as mesmas regras e APIs para Web e Mobile.
+O Backend centraliza autenticação, autorização, validação, regras de negócio, persistência, integrações e acesso aos dados.
+
+Web e Mobile utilizam o mesmo Backend e não acessam diretamente o PostgreSQL.
 
 O Agente de IA possui dois papéis principais:
 
-1. gerar insights, análises e recomendações personalizadas a partir de dados preparados;
-2. atuar como assistente operacional, podendo executar ações autorizadas, incluindo a criação de tarefas solicitadas pelo usuário.
+1. gerar insights, análises e recomendações personalizadas a partir de dados estruturados;
+2. atuar como assistente operacional, podendo executar ações autorizadas por meio de ferramentas controladas pelo Backend.
 
-O problema específico de negócio, o conjunto completo de funcionalidades e os critérios de aceite ainda não estão totalmente definidos no `SPEC.md`.
-
-### Protótipo oficial de frontend
-
-O único protótipo oficial é:
-
-https://stitch.withgoogle.com/projects/13596816261153646269
-
-O protótipo orienta a composição das telas e os fluxos de navegação.
-
-O `Cyber-Academic System`, definido no `DESIGN.md`, é a fonte de verdade para regras visuais, tokens e componentes.
+O `SPEC.md` é a fonte de verdade para os requisitos completos do produto.
 
 ---
 
-## 2. Requisitos principais
+# 2. Fontes de verdade
 
-### 2.1 Aplicações cliente
+O projeto possui os seguintes artefatos canônicos:
 
-- Web deve ser implementada com React.
-- Mobile deve ser implementado com React Native.
-- Web e Mobile devem utilizar o mesmo Backend.
-- Operações sobre dados persistidos devem passar pelas APIs do Backend.
-- A aplicação Web deve ser responsiva para Mobile, Tablet, Desktop e Large Desktop.
-- Mobile deve manter consistência visual e conceitual com Web, adaptando interações para Android e iOS.
+| Arquivo         | Responsabilidade                                                                         |
+| --------------- | ---------------------------------------------------------------------------------------- |
+| `SPEC.md`       | Requisitos, regras de negócio, arquitetura, decisões e pendências do produto             |
+| `DESIGN.md`     | Design System, identidade visual, tokens, componentes, estados e regras de UI/UX         |
+| `schema.prisma` | Modelo físico persistente, modelos Prisma, tipos, enums, relações, índices e constraints |
+| `context.md`    | Contexto operacional, convenções, governança e instruções para agentes                   |
+| `openspec/`     | Mudanças significativas, seus artefatos e histórico de mudanças                          |
 
-### 2.2 Backend
+### Regra
 
-O Backend deve concentrar:
+Nenhum desses arquivos substitui os demais.
 
-- autenticação;
-- autorização;
-- validação;
-- regras de negócio;
-- persistência;
-- consultas;
-- relacionamentos entre entidades;
-- integrações externas;
-- logs;
-- tratamento de erros;
-- documentação da API.
+Cada arquivo possui uma responsabilidade específica.
 
-A organização deve ser orientada por módulos/domínios, evitando concentrar toda a lógica em controllers ou services genéricos.
-
-### 2.3 API
-
-A comunicação deve utilizar:
-
-- REST;
-- JSON;
-- HTTPS;
-- versionamento `/api/v1`.
-
-O padrão conceitual de resposta é:
-
-- sucesso: `{ "data": ... }`;
-- erro: `{ "error": { "code": ..., "message": ... } }`.
-
-A API deve ser documentada com OpenAPI/Swagger.
-
-### 2.4 Dados e Analytics
-
-Python + Pandas será utilizado para processamento e preparação de dados analíticos.
-
-O Analytics Service deverá cuidar de consultas analíticas, agregações, filtros, agrupamentos, métricas, séries temporais, comparações, indicadores, preparação/normalização de datasets e validação dos dados antes do envio à IA.
-
-O frontend não deve implementar separadamente as mesmas regras de cálculo de métricas.
-
-### 2.5 Inteligência Artificial
-
-A IA deve:
-
-- interpretar dados estruturados e previamente processados;
-- gerar insights;
-- gerar análises personalizadas;
-- contextualizar e explicar resultados;
-- gerar recomendações quando permitido;
-- interagir com o usuário;
-- executar ações autorizadas por meio de ferramentas do Backend.
-
-O modelo não deve acessar diretamente o PostgreSQL.
-
-### 2.6 Agente de IA e tarefas
-
-O Agente deve identificar a intenção do usuário antes de executar ações.
-
-Quando o usuário solicitar explicitamente uma tarefa/atividade:
-
-1. interpretar a solicitação;
-2. identificar título, descrição, prioridade, prazo e demais campos disponíveis;
-3. pedir esclarecimento somente se faltar informação obrigatória que não possa ser inferida com segurança;
-4. validar permissões;
-5. chamar a ferramenta de criação de tarefas;
-6. persistir a tarefa pelo Backend;
-7. confirmar a criação ao usuário.
-
-A criação de tarefas solicitadas explicitamente é considerada ação de baixo risco e pode ocorrer após a validação necessária.
-
-Ações destrutivas, irreversíveis ou que afetem dados importantes exigem confirmação explícita.
+Uma decisão deve ser registrada no artefato correspondente.
 
 ---
 
-## 3. Arquitetura e componentes
+# 3. Protótipo oficial
 
-### 3.1 Arquitetura principal
+O único protótipo oficial de frontend é:
+
+`https://stitch.withgoogle.com/projects/13596816261153646269`
+
+O protótipo orienta:
+
+* composição das telas;
+* fluxos de navegação;
+* estrutura visual específica das telas.
+
+O `DESIGN.md` define:
+
+* Design System;
+* tokens;
+* cores;
+* tipografia;
+* espaçamento;
+* grid;
+* componentes;
+* estados;
+* acessibilidade;
+* padrões visuais.
+
+Em caso de conflito visual:
+
+1. `DESIGN.md` prevalece para tokens, componentes e padrões visuais;
+2. o protótipo oficial prevalece para composição e fluxo específico das telas.
+
+---
+
+# 4. Stack definida
+
+As seguintes tecnologias estão definidas no estado atual do projeto:
+
+| Camada                          | Tecnologia                |
+| ------------------------------- | ------------------------- |
+| Web                             | React + TypeScript        |
+| Mobile                          | React Native + TypeScript |
+| Runtime                         | Node.js                   |
+| Backend                         | NestJS                    |
+| HTTP Adapter                    | Fastify                   |
+| API                             | REST + JSON + HTTPS       |
+| API Version                     | `/api/v1`                 |
+| Database                        | PostgreSQL                |
+| ORM                             | Prisma                    |
+| Analytics                       | Python + FastAPI + Pandas |
+| Authentication                  | JWT + Refresh Tokens      |
+| Password Hashing                | Argon2id                  |
+| Cache / infraestrutura de apoio | Redis                     |
+| Jobs assíncronos                | BullMQ                    |
+| Push Notifications              | FCM                       |
+| Object Storage                  | S3-compatible             |
+| API Documentation               | OpenAPI / Swagger         |
+| Version Control                 | Git / GitHub              |
+| Design System                   | Cyber-Academic System     |
+
+### Regra
+
+Não substituir tecnologias definidas sem alteração formal da especificação.
+
+Tecnologias ainda marcadas como `TBD` no `SPEC.md` não devem ser escolhidas arbitrariamente pelo agente.
+
+---
+
+# 5. Arquitetura
+
+## 5.1 Arquitetura principal
 
 ```text
 React Web ───────┐
@@ -137,35 +130,35 @@ React Web ───────┐
                  │                                  │
 React Native ────┘                                  │
                                                     ▼
-                                                  Prisma
+                                                 Prisma
                                                     │
                                                     ▼
-                                                PostgreSQL
+                                               PostgreSQL
 ```
 
-### 3.2 Arquitetura analítica e de IA
+## 5.2 Analytics
 
 ```text
-PostgreSQL
-    ↓
-Prisma
-    ↓
-Analytics Service
-    ↓
-Python Data Service
-    ↓
-Pandas
-    ↓
-Dataset / Resultado Analítico
-    ├──► Dashboard
-    └──► AI Agent / Insight Engine
+Backend / Analytics Service
+            ↓
+     Python / FastAPI
+            ↓
+          Pandas
+            ↓
+   Dataset / Resultado
+            ├──► Dashboard
+            └──► AI Agent
 ```
 
-Princípio central:
+O mecanismo de comunicação de alto nível está definido no `SPEC.md`:
 
-> **Dados são calculados deterministicamente pelo sistema; IA interpreta os dados; Frontend apresenta os resultados.**
+* HTTP interno para operações analíticas síncronas;
+* processamento assíncrono para operações pesadas;
+* Redis + BullMQ para jobs assíncronos.
 
-### 3.3 Agente
+Contratos, schemas, timeouts, retries e idempotência ainda devem ser definidos antes da implementação das integrações correspondentes.
+
+## 5.3 Agente de IA
 
 ```text
 Usuário
@@ -176,12 +169,14 @@ AI Agent API
    ↓
 Agent Orchestrator
    ├── Context Manager
-   ├── LLM Provider
+   ├── LLM Provider Adapter
    ├── Analytics Tools
    ├── Task Tools
    └── Application Tools
    ↓
-Validação de permissões
+Validação
+   ↓
+Autorização
    ↓
 Execução
    ↓
@@ -190,572 +185,635 @@ Resposta estruturada
 Web / Mobile
 ```
 
-O Agent Orchestrator controla contexto, memória necessária à sessão, seleção de ferramentas, chamadas ao modelo, validação, autorização, erros, resposta estruturada e auditoria.
-
-### 3.4 Ferramentas previstas para o Agente
-
-Exemplos definidos no `SPEC.md`:
-
-- `create_task`
-- `list_tasks`
-- `update_task`
-- `complete_task`
-- `get_user_metrics`
-- `get_dashboard_data`
-- `generate_analysis`
-
-A lista definitiva de ferramentas ainda não está definida.
-
-### 3.5 Dashboards
-
-Dashboards podem apresentar:
-
-- KPIs;
-- indicadores;
-- métricas;
-- gráficos;
-- tabelas;
-- comparações;
-- tendências;
-- distribuição;
-- evolução temporal;
-- alertas;
-- insights de IA.
-
-As métricas oficiais não devem ser inventadas pelo agente/desenvolvedor; devem vir dos requisitos do produto.
-
-Componentes de visualização devem ser reutilizáveis, incluindo os padrões conceituais:
-
-- `LineChart`
-- `BarChart`
-- `PieChart`
-- `AreaChart`
-- `KPI`
-- `DataTable`
+O Agente nunca acessa diretamente o PostgreSQL.
 
 ---
 
-## 4. Stack e tecnologias
+# 6. Regras arquiteturais invariáveis
 
-| Camada | Tecnologia/definição |
-|---|---|
-| Web | React |
-| Mobile | React Native |
-| Linguagem | TypeScript |
-| Runtime | Node.js |
-| Backend | NestJS |
-| HTTP Adapter | Fastify |
-| API | REST/JSON/HTTPS |
-| Banco | PostgreSQL |
-| ORM | Prisma |
-| Autenticação | JWT/OAuth ou serviço especializado |
-| API Docs | OpenAPI/Swagger |
-| Controle de versão | Git |
-| CI/CD | Pipeline automatizado |
-| Analytics/Data Processing | Python + Pandas |
-| Design System | Cyber-Academic System (`DESIGN.md`) |
+As seguintes regras devem ser preservadas durante o desenvolvimento:
 
-### Tecnologias ainda não definitivas
-
-O `SPEC.md` não fecha:
-
-- provedor de IA;
-- modelo de IA;
-- embedding provider;
-- vector database;
-- framework/orquestrador do agente;
-- biblioteca de gráficos Web;
-- biblioteca de gráficos Mobile;
-- estratégia de comunicação NestJS ↔ Python;
-- serviço de execução Python;
-- versão do Python;
-- versão do Pandas;
-- Redis;
-- message broker/queue;
-- provedor de cloud;
-- ferramentas específicas de observabilidade.
-
-**Não assumir fornecedores ou bibliotecas como decisões definitivas sem aprovação.**
+1. Frontend Web não acessa diretamente o PostgreSQL.
+2. Mobile não acessa diretamente o PostgreSQL.
+3. Agente de IA não acessa diretamente o PostgreSQL.
+4. IA não executa SQL diretamente.
+5. Alterações persistentes passam pelo Backend.
+6. Ações da IA são executadas por Tools controladas pelo Backend.
+7. Tools devem respeitar autenticação e autorização.
+8. Regras críticas de negócio permanecem determinísticas.
+9. Métricas oficiais são calculadas pelo sistema.
+10. A IA interpreta e contextualiza dados calculados.
+11. A IA não deve inventar métricas, números ou informações ausentes.
+12. Dados enviados ao modelo devem respeitar minimização e políticas de privacidade.
+13. Ações realizadas pelo Agente devem ser auditáveis.
+14. Web e Mobile utilizam as mesmas regras de negócio.
+15. Alterações de banco utilizam migrations versionadas.
+16. Secrets não podem ser versionados.
+17. Dados recebidos pelo Backend devem ser validados.
+18. O Backend não deve confiar em dados fornecidos pelo cliente.
+19. Componentes existentes devem ser reutilizados quando apropriado.
+20. Não devem ser criados padrões visuais fora do Design System sem decisão formal.
+21. Não devem ser inventados endpoints, métricas, schemas ou regras de negócio.
+22. Decisões marcadas como `TBD` não devem ser escolhidas arbitrariamente pelo agente.
 
 ---
 
-## 5. Modelo de dados e conceitos
+# 7. Backend
 
-### 5.1 Domínios principais
+O Backend é organizado por módulos/domínios.
 
-O projeto contempla conceitualmente:
-
-- usuários;
-- autenticação;
-- perfis/permissões;
-- dashboards;
-- analytics;
-- insights;
-- tarefas/atividades;
-- Agente de IA;
-- ferramentas do agente;
-- auditoria das ações do agente.
-
-### 5.2 Tarefas
-
-A entidade de tarefas deverá avaliar, no mínimo:
-
-- `id`;
-- `user_id`;
-- `title`;
-- `description`;
-- `status`;
-- `priority`;
-- `due_date`;
-- `created_at`;
-- `updated_at`;
-- `completed_at`;
-- `created_by`;
-- origem da criação;
-- identificador da execução do agente, quando aplicável.
-
-A modelagem definitiva ainda depende dos requisitos do produto.
-
-### 5.3 Insights
-
-Quando aplicável, a rastreabilidade de um insight deverá manter:
-
-- ID;
-- timestamp;
-- dataset utilizado;
-- período analisado;
-- métricas utilizadas;
-- modelo utilizado;
-- versão do prompt;
-- resultado.
-
-A implementação definitiva ainda precisa ser especificada.
-
----
-
-## 6. Regras e invariantes
-
-Estas regras não devem ser quebradas durante alterações futuras:
-
-1. **Frontend e Mobile não acessam diretamente o PostgreSQL.**
-2. **A IA não acessa diretamente o PostgreSQL.**
-3. Alterações de dados devem passar pelo Backend.
-4. O Agente executa ações somente por ferramentas controladas pelo Backend.
-5. Python/Pandas processa e prepara dados analíticos; não substitui o Backend ou o banco.
-6. Cálculos críticos e regras de negócio permanecem determinísticos no Backend.
-7. A IA interpreta dados; não deve substituir cálculos determinísticos.
-8. A IA não deve inventar métricas, números ou informações ausentes dos dados.
-9. Dados enviados ao modelo devem seguir minimização, autorização e políticas de privacidade.
-10. Toda ação realizada pelo Agente deve ser auditável.
-11. Web e Mobile devem consumir as mesmas regras de negócio e APIs.
-12. Serviços pesados podem exigir processamento assíncrono.
-13. Secrets não devem ser armazenados no código ou versionados no Git.
-14. Dados recebidos pelo Backend devem ser validados.
-15. O Backend não deve confiar em dados enviados pelo cliente.
-16. Alterações de banco devem utilizar migrations versionadas.
-17. Nenhum código deve ir para produção sem as verificações automatizadas definidas no pipeline.
-18. Componentes visuais existentes devem ser reutilizados em vez de duplicados.
-19. Não criar padrões visuais isolados quando já existir token ou componente correspondente no Design System.
-20. Não inventar métricas ou endpoints definitivos a partir de exemplos conceituais do `SPEC.md`.
-
----
-
-## 7. Convenções e padrões
-
-### Backend
-
-Estrutura sugerida:
+Exemplos:
 
 ```text
 src/
 ├── modules/
 │   ├── auth/
 │   ├── users/
-│   └── ...
-├── database/
-│   └── prisma/
+│   ├── subjects/
+│   ├── tasks/
+│   ├── study-sessions/
+│   ├── analytics/
+│   ├── ai/
+│   ├── insights/
+│   ├── reports/
+│   └── notifications/
+│
 ├── common/
-│   ├── guards/
-│   ├── filters/
-│   ├── interceptors/
-│   ├── decorators/
-│   └── pipes/
 ├── config/
-├── app.module.ts
+├── database/
 └── main.ts
 ```
 
-Organização orientada a módulos/domínios.
+A estrutura exata deve ser validada contra o estado real do repositório antes da implementação.
 
-### Web
+Controllers não devem concentrar regras de negócio.
 
-```text
-src/
-├── components/
-├── pages/
-├── layouts/
-├── routes/
-├── hooks/
-├── services/
-├── stores/
-├── types/
-├── utils/
-├── assets/
-└── App.tsx
-```
-
-- `components`: componentes reutilizáveis;
-- `pages`: telas completas;
-- `services`: comunicação com API;
-- `hooks`: lógica React reutilizável;
-- `stores`: estado global quando necessário;
-- `routes`: navegação.
-
-### Mobile
+A separação conceitual é:
 
 ```text
-src/
-├── components/
-├── screens/
-├── navigation/
-├── hooks/
-├── services/
-├── stores/
-├── utils/
-├── types/
-├── assets/
-└── App.tsx
+Controller
+    ↓
+Service / Domain Service
+    ↓
+Repository / ORM
+    ↓
+PostgreSQL
 ```
 
-### Git
+---
 
-Branches previstas:
+# 8. Analytics
+
+Python + Pandas é a camada oficial de processamento e preparação analítica.
+
+Responsabilidades:
+
+* agregações;
+* filtros;
+* agrupamentos;
+* métricas;
+* séries temporais;
+* comparações;
+* preparação de datasets;
+* normalização;
+* validação;
+* preparação de dados para IA;
+* geração de dados para relatórios.
+
+O Python não substitui:
+
+* Backend;
+* regras de negócio;
+* autenticação;
+* autorização;
+* persistência principal.
+
+O Frontend não deve duplicar cálculos oficiais realizados pelo Backend/Analytics.
+
+---
+
+# 9. Inteligência Artificial
+
+A arquitetura de IA é provider-agnostic.
+
+O código não deve ficar diretamente acoplado a um único provedor de LLM.
+
+A integração deve ocorrer por meio de um Provider Adapter.
+
+O Agente deve:
+
+* identificar intenção;
+* consultar dados por ferramentas;
+* interpretar dados estruturados;
+* gerar análises;
+* gerar insights;
+* gerar recomendações quando permitido;
+* executar ações autorizadas;
+* produzir respostas estruturadas quando aplicável;
+* registrar execuções de ferramentas;
+* respeitar limites de contexto;
+* respeitar políticas de segurança e privacidade.
+
+O modelo não possui autoridade própria sobre o banco ou domínio.
+
+A autoridade pertence ao Backend.
+
+---
+
+# 10. Tools do Agente
+
+A lista atual de ferramentas previstas no `SPEC.md` inclui:
 
 ```text
-main
-production
-
-develop
-├── feature/*
-├── fix/*
-└── refactor/*
+create_task
+list_tasks
+get_task
+update_task
+complete_task
+get_user_metrics
+get_dashboard_data
+generate_analysis
 ```
+
+Essa lista representa o estado atual previsto e deve ser validada antes da implementação definitiva.
+
+Cada Tool deve possuir:
+
+* identificação;
+* finalidade;
+* input definido;
+* output definido;
+* validação;
+* autorização;
+* tratamento de erro;
+* classificação de risco;
+* auditoria quando aplicável.
+
+O Agente não pode criar ferramentas arbitrárias durante a execução.
+
+---
+
+# 11. Ações do Agente
+
+## Leitura
+
+Operações de leitura podem ser executadas sem confirmação adicional quando:
+
+* o usuário está autenticado;
+* a operação é autorizada;
+* a ferramenta é permitida;
+* os dados pertencem ao usuário ou estão disponíveis segundo as regras do domínio.
+
+## Escrita
+
+Ações de escrita devem:
+
+1. identificar a intenção;
+2. validar os parâmetros;
+3. validar autorização;
+4. utilizar uma Tool aprovada;
+5. executar pelo Backend;
+6. registrar a execução quando aplicável.
+
+## Ações de alto risco
+
+Ações destrutivas, irreversíveis ou que afetem dados importantes exigem confirmação explícita.
+
+A criação explícita de tarefas solicitada pelo usuário é considerada ação de baixo risco após validação.
+
+---
+
+# 12. Estado real do projeto
+
+O estado de implementação nunca deve ser inferido apenas a partir do `SPEC.md`, `context.md` ou qualquer documentação.
+
+Antes de afirmar que algo está implementado, o agente deve verificar:
+
+* código;
+* estrutura de diretórios;
+* configurações;
+* dependências;
+* migrations;
+* banco quando disponível;
+* testes;
+* pipelines;
+* integrações.
+
+Classificações possíveis:
+
+* Implementado;
+* Parcialmente implementado;
+* Não implementado;
+* Não verificável.
+
+Quando não houver evidência suficiente, utilizar `Não verificável`.
+
+---
+
+# 13. Pendências
+
+O agente deve consultar `SPEC.md` para identificar as pendências atuais.
+
+Decisões marcadas como:
+
+* `TBD`;
+* `A DEFINIR`;
+* `PENDENTE`;
+
+não devem ser inventadas.
+
+Quando uma pendência impedir a implementação segura de uma funcionalidade, o agente deve interromper a implementação daquela parte e solicitar ou formalizar a decisão necessária.
+
+---
+
+# 14. Regras de documentação
+
+Quando uma decisão permanente for tomada:
+
+* requisitos → atualizar `SPEC.md`;
+* Design System → atualizar `DESIGN.md`;
+* modelo físico → atualizar `schema.prisma`;
+* regras operacionais para agentes → atualizar `context.md`;
+* mudança significativa → registrar no OpenSpec.
+
+Não utilizar `context.md` para substituir decisões detalhadas do `SPEC.md`.
+
+Não alterar documentação apenas para justificar uma implementação incorreta.
+
+---
+
+# 15. TLC Spec-Driven Development
+
+O TLC Spec-Driven Development é o processo principal de desenvolvimento.
+
+O TLC deve ser utilizado para:
+
+1. especificar;
+2. analisar;
+3. projetar quando necessário;
+4. decompor em tarefas;
+5. executar;
+6. testar;
+7. validar;
+8. manter rastreabilidade.
+
+O agente deve evitar iniciar implementação significativa enquanto requisitos necessários ainda estiverem indefinidos.
+
+Para mudanças pequenas, o fluxo pode ser:
+
+```text
+TLC
+ ↓
+Tasks
+ ↓
+Execute
+ ↓
+Tests
+```
+
+Para mudanças maiores:
+
+```text
+TLC Specify
+ ↓
+Design
+ ↓
+Tasks
+ ↓
+Execute
+ ↓
+Tests
+ ↓
+Verification
+```
+
+A necessidade de cada etapa deve ser avaliada conforme o tamanho e risco da mudança.
+
+---
+
+# 16. OpenSpec
+
+OpenSpec é o mecanismo de governança para mudanças significativas.
+
+Utilizar OpenSpec quando uma mudança:
+
+* adiciona funcionalidade;
+* remove funcionalidade;
+* altera comportamento;
+* altera requisitos;
+* altera arquitetura;
+* altera contratos de API;
+* altera modelo de dados;
+* altera autenticação/autorização;
+* altera segurança relevante;
+* adiciona integração externa;
+* altera fluxos críticos;
+* exige nova decisão arquitetural;
+* exige atualização significativa do estado permanente.
+
+O OpenSpec deve representar o delta entre o estado atual e o estado desejado.
+
+Uma change não deve copiar integralmente:
+
+* `SPEC.md`;
+* `DESIGN.md`;
+* `context.md`;
+* `schema.prisma`.
+
+---
+
+# 17. Relação entre TLC e OpenSpec
+
+TLC e OpenSpec são complementares.
+
+```text
+TLC
+ ↓
+Define e conduz o desenvolvimento
+
+OpenSpec
+ ↓
+Formaliza e governa mudanças significativas
+```
+
+Fluxo recomendado para uma mudança significativa:
+
+```text
+TLC / identificação do problema
+          ↓
+OpenSpec Explore
+          ↓
+OpenSpec Propose
+          ↓
+Revisão
+          ↓
+OpenSpec Apply
+          ↓
+TLC Execute
+          ↓
+Testes
+          ↓
+Verification
+          ↓
+OpenSpec Archive / Sync
+          ↓
+Consolidação no estado permanente
+```
+
+O workflow exato de artefatos deve seguir as skills e a versão do OpenSpec instalada no projeto.
+
+O agente não deve inventar artefatos ou etapas que não existam na instalação utilizada.
+
+---
+
+# 18. Classificação de mudanças
+
+## Mudanças pequenas
+
+Podem utilizar diretamente TLC quando não alterarem significativamente o comportamento, requisitos, arquitetura ou contratos.
 
 Exemplos:
 
-- `feature/user-authentication`
-- `feature/dashboard`
-- `fix/login-validation`
-- `refactor/api-client`
+* correção localizada;
+* refatoração sem alteração de comportamento;
+* expansão de testes;
+* correção de documentação;
+* melhoria interna de implementação.
 
-Pull Requests devem ser utilizados para revisão.
-
----
-
-## 8. Design System e frontend
-
-O Design System oficial é o **Cyber-Academic System**, definido em `DESIGN.md`.
-
-O `DESIGN.md` é a fonte de verdade para:
-
-- identidade visual;
-- tokens;
-- cores;
-- tipografia;
-- espaçamento;
-- grid;
-- formas;
-- glassmorphism;
-- componentes;
-- estados;
-- acessibilidade.
-
-Principais definições:
-
-- Sora para headings;
-- Inter para corpo;
-- JetBrains Mono para métricas, timestamps e metadados;
-- unidade de espaçamento de 4px;
-- Desktop com grid de 12 colunas;
-- Tablet com grid de 8 colunas;
-- Mobile com coluna única;
-- contraste mínimo de 4.5:1;
-- componentes reutilizáveis.
-
-O Design System inclui componentes para navegação, formulários, data display, feedback, visualização de dados, IA e tarefas.
-
-### Relação com o protótipo
+Fluxo:
 
 ```text
-Protótipo Oficial do Stitch
-        ↓
-Cyber-Academic Design System
-        ↓
-Design Tokens
-        ↓
-Componentes
-        ↓
-Telas e fluxos
+TLC → Tasks → Execute → Tests
 ```
 
-O protótipo oficial define composição e fluxos específicos das telas.
+## Mudanças significativas
 
-O Design System define regras visuais, tokens e componentes.
+Devem utilizar OpenSpec.
 
-Em conflito visual:
+Exemplos:
 
-- Design System prevalece para tokens e padrões de UI;
-- protótipo oficial prevalece para composição e fluxo específico da tela.
+* nova funcionalidade;
+* novo requisito;
+* alteração de API;
+* alteração de banco;
+* nova integração;
+* mudança de autenticação;
+* mudança arquitetural;
+* alteração de comportamento da IA;
+* nova Tool do Agente;
+* mudança importante de segurança.
 
----
+Fluxo:
 
-## 9. Decisões já tomadas
+```text
+TLC
+ ↓
+OpenSpec
+ ↓
+Review
+ ↓
+Apply
+ ↓
+TLC Execute
+ ↓
+Tests
+ ↓
+Verification
+ ↓
+Archive / Sync
+```
 
-### D1 — React para Web
-- **Decisão:** React + TypeScript.
-- **Impacto:** interface Web deve seguir a arquitetura e organização definidas para React.
-
-### D2 — React Native para Mobile
-- **Decisão:** React Native + TypeScript.
-- **Impacto:** Android e iOS compartilharão a base da aplicação Mobile.
-
-### D3 — Backend centralizado
-- **Decisão:** Node.js com recomendação de NestJS + Fastify.
-- **Impacto:** regras de negócio, autenticação, autorização, validações e persistência ficam centralizadas.
-
-### D4 — PostgreSQL + Prisma
-- **Decisão recomendada:** PostgreSQL + Prisma.
-- **Impacto:** acesso persistente deve ocorrer através do Backend/ORM.
-
-### D5 — API REST versionada
-- **Decisão:** REST/JSON/HTTPS com `/api/v1`.
-- **Impacto:** Web e Mobile compartilham a mesma API.
-
-### D6 — Python + Pandas
-- **Decisão:** Python + Pandas para processamento/preparação analítica.
-- **Impacto:** exige uma estratégia de comunicação entre NestJS e o serviço Python, ainda não definida.
-
-### D7 — IA controlada pelo Backend
-- **Decisão:** IA não acessa diretamente o PostgreSQL.
-- **Impacto:** dados devem ser preparados e fornecidos por camadas controladas.
-
-### D8 — Agente com Tool Calling
-- **Decisão:** ações do Agente são executadas por ferramentas controladas pelo Backend.
-- **Impacto:** o agente não executa SQL nem chamadas arbitrárias diretamente.
-
-### D9 — Criação de tarefas pela IA
-- **Decisão:** o Agente pode criar tarefas quando solicitado explicitamente pelo usuário, após validações.
-- **Impacto:** o domínio de tarefas e as ferramentas correspondentes precisam existir no Backend.
-
-### D10 — Cyber-Academic System
-- **Decisão:** Design System oficial.
-- **Impacto:** interfaces devem seguir `DESIGN.md`.
-
-### D11 — Protótipo oficial único
-- **Decisão:** apenas o projeto Stitch indicado no `SPEC.md` é o protótipo oficial de frontend.
-- **Impacto:** outros projetos do Stitch não devem ser tratados como referência oficial.
+Na dúvida, tratar a mudança como significativa.
 
 ---
 
-## 10. Restrições e limitações
+# 19. Regra de conflito
 
-### Segurança
+Quando houver divergência entre:
 
-- HTTPS em produção.
-- Validar entradas.
-- Não confiar no cliente.
-- Secrets em variáveis de ambiente/secrets.
-- Nunca versionar senhas ou tokens.
-- Rate limiting em endpoints sensíveis.
-- Hash seguro para senhas.
-- Controle de permissões.
-- Não expor dados sensíveis em erros.
-- Registrar eventos importantes de autenticação.
-- Banco com controle de acesso, credenciais seguras, backups e migrations.
+* requisito;
+* `SPEC.md`;
+* `DESIGN.md`;
+* `schema.prisma`;
+* `context.md`;
+* OpenSpec;
+* código;
+* testes;
 
-### IA
+o agente não deve assumir automaticamente qual está correto.
 
-- Não enviar secrets/credenciais ao modelo.
-- Avaliar dados pessoais, sensíveis, financeiros e confidenciais antes do envio.
-- Aplicar minimização/anonimização quando aplicável.
-- Não permitir que a IA invente números.
-- Validar respostas quando possível.
-- Identificar informações inferidas.
-- Quando não houver dados suficientes, a IA deve indicar essa insuficiência.
-- Não assumir provedor/modelo de IA definitivo.
+Deve:
 
-### Performance
+1. identificar a divergência;
+2. identificar os artefatos envolvidos;
+3. verificar se existe uma OpenSpec Change relacionada;
+4. determinar qual é o estado desejado;
+5. verificar a autoridade do artefato afetado;
+6. corrigir a implementação ou documentação;
+7. executar os testes necessários;
+8. atualizar os artefatos permanentes quando a decisão estiver consolidada.
 
-- Evitar dados desnecessários.
-- Usar paginação quando aplicável.
-- Agregar no Backend.
-- Evitar consultas repetidas.
-- Considerar cache.
-- Utilizar índices adequados.
-- Evitar datasets gigantes no Frontend e na IA.
-- Considerar processamento assíncrono para operações pesadas.
+Código existente não substitui automaticamente a especificação.
+
+Documentação também não deve ser alterada apenas para justificar código incorreto.
 
 ---
 
-## 11. Estado atual
+# 20. Ordem de autoridade
 
-O `SPEC.md` é uma especificação técnica/arquitetural e **não fornece evidência suficiente para determinar o estado real de implementação do código**.
+A ordem de autoridade deve ser interpretada por responsabilidade, e não como uma hierarquia absoluta entre arquivos.
 
-Portanto:
+## Requisitos e produto
 
-- **Implementado:** não verificável apenas pelo `SPEC.md`.
-- **Parcialmente implementado:** não verificável apenas pelo `SPEC.md`.
-- **Ainda não implementado:** não deve ser presumido apenas porque aparece como requisito.
+`SPEC.md`
 
-O agente deve verificar o código e os arquivos reais do projeto antes de afirmar que uma funcionalidade está implementada.
+## Design visual
 
----
+`DESIGN.md`
 
-## 12. Pendências
+## Modelo físico de dados
 
-As seguintes decisões permanecem explicitamente em aberto no `SPEC.md`:
+`schema.prisma`
 
-### Produto e domínio
-- lista completa de funcionalidades;
-- perfis e permissões;
-- fluxos de autenticação;
-- mapa de telas Web;
-- mapa de telas Mobile;
-- entidades e relacionamentos definitivos;
-- endpoints definitivos;
-- regras de negócio;
-- integrações externas;
-- critérios de aceite.
+## Mudança em andamento
 
-### IA e Analytics
-- provedor de IA;
-- modelo principal;
-- modelo secundário/fallback;
-- embedding provider;
-- vector database;
-- framework/orquestrador;
-- estratégia de tool calling;
-- lista oficial de ferramentas;
-- autorização por ferramenta;
-- memória;
-- histórico;
-- limites de contexto/tokens;
-- estratégia e versionamento de prompts;
-- Structured Output;
-- avaliação do agente;
-- confirmação de ações;
-- auditoria;
-- rate limiting;
-- controle de custos;
-- fallback do provedor;
-- métricas oficiais;
-- KPIs;
-- regras de detecção de anomalias;
-- observabilidade da IA.
+`OpenSpec change`
 
-### Python/Pandas
-- comunicação NestJS ↔ Python;
-- serviço Python;
-- versão do Python;
-- versão do Pandas;
-- formato de datasets;
-- síncrono vs. assíncrono;
-- biblioteca adicional de análise;
-- jobs agendados;
-- cache;
-- necessidade futura de warehouse/lake.
+## Regras operacionais do agente
 
-### Tasks
-- modelo definitivo;
-- status;
-- prioridades;
-- regras de prazo;
-- recorrência;
-- notificações;
-- permissões;
-- histórico de alterações.
+`context.md`
 
-### Infraestrutura
-- cloud;
-- hospedagem Web;
-- hospedagem API;
-- hospedagem Python;
-- PostgreSQL gerenciado/próprio;
-- Redis;
-- queue/message broker;
-- object storage;
-- DNS;
-- CDN;
-- TLS/HTTPS;
-- secrets manager;
-- autoscaling.
+## Implementação
 
-### Observabilidade
-- logs;
-- monitoramento de erros;
-- APM/tracing;
-- métricas da API;
-- métricas Python/Pandas;
-- métricas do Agente;
-- custos de IA;
-- alertas;
-- correlation/trace ID.
+Código existente
 
-### Qualidade e segurança
-- testes do pipeline Pandas;
-- testes das tools;
-- testes de prompt/LLM;
-- testes de autorização;
-- testes contra prompt injection;
-- proteção contra vazamento de dados;
-- retenção de conversas;
-- LGPD;
-- mascaramento/anonimização;
-- disaster recovery.
+Quando houver conflito, deve ser analisado o tipo de decisão envolvida.
+
+`context.md` não pode sobrescrever uma decisão permanente registrada no `SPEC.md`.
 
 ---
 
-## 13. Conflitos e pontos a esclarecer
+# 21. Regra antes de implementar
 
-1. **Autenticação ainda não está fechada.** O `SPEC.md` considera JWT, OAuth e serviço especializado; não tratar nenhuma alternativa como definitiva sem decisão formal.
+Antes de iniciar uma implementação significativa, o agente deve:
 
-2. **NestJS + Fastify é recomendação arquitetural**, embora apareça na stack recomendada. Não substituir por outra solução sem decisão.
-
-3. **Prisma é a recomendação inicial**, mas Drizzle foi considerado como alternativa. Não tratar Drizzle como stack ativa.
-
-4. **Endpoints de Analytics são exemplos conceituais**, não contratos definitivos.
-
-5. **Schemas de dados da IA são exemplos conceituais**, não devem ser implementados como contratos finais sem especificação.
-
-6. **Cache e processamento assíncrono são condicionais**: devem ser adotados conforme requisitos de custo, volume e performance, não automaticamente.
-
-7. **A lista de ferramentas do Agente é exemplificativa**; a lista oficial ainda precisa ser definida.
-
-8. **O estado de implementação não pode ser inferido do `SPEC.md`.**
-
-9. O `SPEC.md` contém uma seção final com texto legado que menciona novamente “as três telas/projetos do Stitch”. Isso conflita com a definição anterior de que existe apenas um protótipo oficial. Para o contexto atual, deve prevalecer a decisão explícita de que o projeto Stitch `13596816261153646269` é o único protótipo oficial.
-
-10. O `SPEC.md` utiliza numeração duplicada em algumas seções (`# 59` aparece mais de uma vez). Isso é um problema de organização documental, não uma decisão arquitetural.
+1. ler `context.md`;
+2. ler as partes relevantes do `SPEC.md`;
+3. consultar `DESIGN.md` se houver impacto visual;
+4. consultar `schema.prisma` se houver impacto no modelo de dados;
+5. verificar o estado real do código;
+6. verificar se existe OpenSpec Change relacionada;
+7. identificar pendências que bloqueiam a implementação;
+8. verificar componentes, módulos e serviços existentes;
+9. evitar duplicação;
+10. não inventar requisitos;
+11. não escolher decisões marcadas como `TBD`;
+12. definir ou validar as tasks antes da execução.
 
 ---
 
-## 14. Checklist para futuras alterações
+# 22. Regra durante a implementação
 
-Antes de modificar o projeto:
+Durante a execução:
 
-- [ ] Consulte `context.md`.
-- [ ] Consulte `SPEC.md` para requisitos e decisões detalhadas.
-- [ ] Consulte `DESIGN.md` para qualquer alteração de UI/UX.
-- [ ] Verifique o estado real do código antes de assumir que algo existe.
-- [ ] Confirme se a funcionalidade já possui componente, serviço, módulo ou API reutilizável.
-- [ ] Não crie acesso direto do Frontend/Mobile ao PostgreSQL.
-- [ ] Não permita acesso direto da IA ao PostgreSQL.
-- [ ] Para ações da IA, utilize Tools controladas pelo Backend.
-- [ ] Mantenha cálculos críticos determinísticos no Backend.
-- [ ] Use Python/Pandas para processamento analítico conforme definido.
-- [ ] Não invente métricas, endpoints, schemas ou regras de negócio.
-- [ ] Não escolha tecnologias marcadas como `A DEFINIR` sem decisão.
-- [ ] Respeite o Cyber-Academic System.
-- [ ] Use o protótipo oficial do Stitch como referência de composição/fluxo.
-- [ ] Garanta validação, autorização e auditoria de ações críticas.
-- [ ] Atualize a documentação quando uma decisão arquitetural for formalmente tomada.
+* implementar somente o escopo definido;
+* não expandir funcionalidades por iniciativa própria;
+* não alterar arquitetura sem formalização;
+* não alterar contratos sem especificação;
+* respeitar o Design System;
+* respeitar o modelo Prisma;
+* validar entradas;
+* validar autorização;
+* manter logs e auditoria quando aplicável;
+* escrever testes para comportamento relevante;
+* evitar código duplicado;
+* preservar compatibilidade quando necessária.
+
+Se surgir uma decisão não especificada que seja necessária para continuar, o agente deve parar naquela parte e registrar a pendência em vez de inventar uma solução.
+
+---
+
+# 23. Regra após a implementação
+
+Após implementar uma mudança:
+
+1. executar testes;
+2. verificar tipos;
+3. executar lint quando configurado;
+4. validar comportamento;
+5. verificar impactos em documentação;
+6. atualizar `SPEC.md` quando uma decisão permanente tiver sido consolidada;
+7. atualizar `DESIGN.md` quando houver alteração permanente no Design System;
+8. atualizar `schema.prisma` quando houver alteração permanente no modelo físico;
+9. atualizar `context.md` quando houver nova regra operacional relevante;
+10. concluir ou arquivar a OpenSpec Change conforme o workflow instalado.
+
+---
+
+# 24. Princípios fundamentais
+
+O projeto segue estes princípios:
+
+```text
+SPEC.md
+   ↓
+Requisitos e regras
+   ↓
+Backend
+   ↓
+Domínio
+   ↓
+PostgreSQL / Analytics
+   ↓
+Dados estruturados
+   ↓
+Dashboard / AI
+   ↓
+Web / Mobile
+```
+
+Para ações da IA:
+
+```text
+Usuário
+   ↓
+AI Agent
+   ↓
+Tool
+   ↓
+Backend
+   ↓
+Domain Service
+   ↓
+PostgreSQL
+```
+
+A IA não substitui:
+
+* banco de dados;
+* Backend;
+* regras de negócio;
+* autorização;
+* cálculos determinísticos.
+
+A IA atua como camada de interpretação, assistência e execução controlada.
+
+---
+
+# 25. Regra final para agentes
+
+O agente deve sempre preferir:
+
+**especificar antes de implementar;**
+
+**verificar antes de assumir;**
+
+**reutilizar antes de duplicar;**
+
+**formalizar antes de alterar decisões;**
+
+**testar antes de considerar concluído;**
+
+**consolidar antes de considerar uma mudança permanente.**
+
+Quando houver dúvida relevante, o agente deve apresentar a dúvida e não inventar uma decisão.
