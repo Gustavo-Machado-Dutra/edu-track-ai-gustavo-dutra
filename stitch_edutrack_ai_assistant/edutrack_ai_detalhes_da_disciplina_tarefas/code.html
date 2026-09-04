@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Subject View - EduTrack AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-primary": "#732ee4",
+                      "surface-container-high": "#2c2833",
+                      "surface-dim": "#15121b",
+                      "surface-variant": "#37333e",
+                      "on-primary-container": "#ede0ff",
+                      "on-error-container": "#ffdad6",
+                      "background": "#15121b",
+                      "tertiary-fixed": "#ffd6fd",
+                      "on-surface": "#e8dfee",
+                      "on-primary": "#3f008e",
+                      "on-background": "#e8dfee",
+                      "on-tertiary-container": "#ffdbfc",
+                      "error": "#ffb4ab",
+                      "inverse-surface": "#e8dfee",
+                      "secondary-fixed": "#c9e6ff",
+                      "secondary-container": "#00a2e6",
+                      "outline": "#958da1",
+                      "error-container": "#93000a",
+                      "primary-fixed": "#eaddff",
+                      "on-primary-fixed": "#25005a",
+                      "primary-fixed-dim": "#d2bbff",
+                      "primary": "#d2bbff",
+                      "surface-container": "#221e28",
+                      "on-secondary-container": "#00344e",
+                      "on-tertiary-fixed": "#36003e",
+                      "on-surface-variant": "#ccc3d8",
+                      "on-primary-fixed-variant": "#5a00c6",
+                      "tertiary": "#fbabff",
+                      "primary-container": "#7c3aed",
+                      "surface-container-lowest": "#100d16",
+                      "tertiary-fixed-dim": "#fbabff",
+                      "outline-variant": "#4a4455",
+                      "on-error": "#690005",
+                      "tertiary-container": "#af09c7",
+                      "surface-container-highest": "#37333e",
+                      "on-tertiary-fixed-variant": "#7c008e",
+                      "surface-tint": "#d2bbff",
+                      "on-tertiary": "#580065",
+                      "surface-container-low": "#1d1a24",
+                      "on-secondary-fixed": "#001e2f",
+                      "on-secondary": "#00344d",
+                      "surface": "#15121b",
+                      "secondary": "#89ceff",
+                      "on-secondary-fixed-variant": "#004c6e",
+                      "surface-bright": "#3c3742",
+                      "secondary-fixed-dim": "#89ceff",
+                      "inverse-on-surface": "#332f39"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "24px",
+                      "unit": "4px",
+                      "sidebar-width": "260px",
+                      "container-padding": "32px",
+                      "card-gap": "20px"
+              },
+              "fontFamily": {
+                      "label-md": [
+                              "JetBrains Mono"
+                      ],
+                      "headline-sm": [
+                              "Sora"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Sora"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "JetBrains Mono"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Sora"
+                      ],
+                      "headline-lg-mobile": [
+                              "Sora"
+                      ],
+                      "headline-md": [
+                              "Sora"
+                      ]
+              },
+              "fontSize": {
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-sm": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "14px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "28px",
+                              {
+                                      "lineHeight": "36px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        body {
+            background-color: #0B0E14;
+            background-image: radial-gradient(circle at 100% 0%, rgba(115, 46, 228, 0.1) 0%, transparent 40%),
+                              radial-gradient(circle at 0% 100%, rgba(0, 162, 230, 0.1) 0%, transparent 40%);
+            background-attachment: fixed;
+            color: theme('colors.on-background');
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-panel-elevated {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.1);
+        }
+
+        .neon-text-primary {
+            text-shadow: 0 0 10px rgba(124, 58, 237, 0.5);
+        }
+
+        .neon-border-primary {
+            box-shadow: inset 0 0 10px rgba(124, 58, 237, 0.3), 0 0 10px rgba(124, 58, 237, 0.3);
+            border-color: theme('colors.primary');
+        }
+
+        /* Custom Scrollbar for list areas */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="font-body-md antialiased min-h-screen flex overflow-hidden">
+<!-- SideNavBar -->
+<nav class="hidden md:flex flex-col bg-surface-container-low/50 backdrop-blur-xl w-sidebar-width h-full fixed left-0 top-0 border-r border-white/10 shadow-xl py-gutter px-4 z-50">
+<div class="flex items-center gap-3 mb-8 px-2">
+<span class="material-symbols-outlined text-primary text-3xl">hub</span>
+<div>
+<h1 class="text-headline-sm font-headline-sm font-bold text-primary">EduTrack AI</h1>
+<p class="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Mission Control</p>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto">
+<ul class="space-y-2">
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant font-medium hover:bg-white/5 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-label-md font-label-md">Dashboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-primary font-bold border-l-4 border-primary bg-primary/10 scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="text-label-md font-label-md">Subjects</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant font-medium hover:bg-white/5 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span class="text-label-md font-label-md">Tasks</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant font-medium hover:bg-white/5 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span class="text-label-md font-label-md">Reports</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant font-medium hover:bg-white/5 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span class="text-label-md font-label-md">AI Insights</span>
+</a>
+</li>
+</ul>
+</div>
+<div class="mt-auto pt-4 border-t border-white/10 space-y-4">
+<button class="w-full py-2.5 rounded-lg bg-gradient-to-r from-inverse-primary to-secondary-container text-white text-label-md font-label-md font-bold shadow-[0_0_15px_rgba(115,46,228,0.4)] hover:shadow-[0_0_25px_rgba(115,46,228,0.6)] transition-all">
+                Create Task
+            </button>
+<ul class="space-y-2">
+<li>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-on-surface-variant font-medium hover:bg-white/5 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-label-sm font-label-sm">Settings</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-2 rounded-lg text-on-surface-variant font-medium hover:bg-white/5 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">help</span>
+<span class="text-label-sm font-label-sm">Support</span>
+</a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-[260px] h-screen overflow-y-auto flex flex-col relative">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-container-padding h-24 bg-transparent shrink-0 sticky top-0 z-40 backdrop-blur-md">
+<div>
+<h2 class="text-headline-md font-headline-md font-bold text-on-surface">Python Programming</h2>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Advanced Data Structures &amp; Algorithms</p>
+</div>
+<div class="flex items-center gap-6">
+<!-- Search (Abstracted to an icon for layout sake, or small input) -->
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="bg-surface-variant/50 border border-white/10 rounded-full py-2 pl-10 pr-4 text-body-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary w-64 transition-all" placeholder="Search tasks, materials..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary-fixed-dim transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-tertiary rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:text-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined">bolt</span>
+</button>
+<img class="w-10 h-10 rounded-full border-2 border-primary/30 object-cover ml-2" data-alt="A small, circular avatar portrait of a modern student working in a high-tech environment. The lighting is slightly neon and cinematic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNVvd9SlKd0fJm-n9ZiV7RA6YerTrupQ2kYRqrLdMIrxE9vjHs8Y8DgxbKUNOYmqKeVzqcvaAI2eNkh2I0O0nRH2VQM-HzTKSXYKR3JJqKocfvvv2BVLQHNsIgKVxNBQy1d2p0ZYVt0V_RG1_j3L5pROD6UB_rSYj4OiQ2h886n_oPYKpOdD08M7hx98kPUm9smgn8VtRGu3wETNmyKfipL9aQ0Vuso1ou3yzcjg31DedA83BDdOmAXg"/>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<div class="p-container-padding pt-0 grid grid-cols-1 xl:grid-cols-12 gap-6 pb-24">
+<!-- Left Column: Tasks & Details -->
+<div class="xl:col-span-8 flex flex-col gap-6">
+<!-- Focus Timer Card -->
+<div class="glass-panel rounded-xl p-6 flex items-center justify-between relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-r from-primary-container/20 to-transparent pointer-events-none"></div>
+<div class="relative z-10 flex items-center gap-6">
+<div class="relative w-24 h-24 flex items-center justify-center">
+<!-- Circular Progress -->
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="45" stroke="rgba(255,255,255,0.1)" stroke-width="8"></circle>
+<circle class="drop-shadow-[0_0_8px_rgba(0,162,230,0.8)]" cx="50" cy="50" fill="none" r="45" stroke="url(#neonGradient)" stroke-dasharray="282.7" stroke-dashoffset="70" stroke-width="8"></circle>
+<defs>
+<lineargradient id="neonGradient" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" stop-color="#00a2e6"></stop>
+<stop offset="100%" stop-color="#fbabff"></stop>
+</lineargradient>
+</defs>
+</svg>
+<div class="absolute text-center">
+<span class="text-headline-sm font-headline-sm font-bold text-on-surface">25:00</span>
+</div>
+</div>
+<div>
+<h3 class="text-headline-sm font-headline-sm text-on-surface mb-1">Focus Session</h3>
+<p class="text-body-sm text-on-surface-variant mb-3">Current: Binary Search Trees</p>
+<div class="flex gap-2">
+<button class="px-4 py-1.5 rounded-md bg-white/10 text-on-surface text-label-sm font-label-sm hover:bg-white/20 transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span> Start
+                                </button>
+<button class="px-4 py-1.5 rounded-md border border-white/20 text-on-surface text-label-sm font-label-sm hover:border-white/40 transition-colors">
+                                    Log Time
+                                </button>
+</div>
+</div>
+</div>
+<div class="relative z-10 text-right hidden sm:block">
+<p class="text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Today's Goal</p>
+<p class="text-headline-md font-headline-md text-primary neon-text-primary">2h / 4h</p>
+</div>
+</div>
+<!-- Task Board (Kanban style) -->
+<div class="flex-1 glass-panel rounded-xl p-6 flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-headline-sm font-headline-sm text-on-surface">Task Backlog</h3>
+<div class="flex gap-2">
+<button class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+<button class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 h-[400px]">
+<!-- To Do Column -->
+<div class="flex flex-col gap-4 bg-black/20 rounded-lg p-4">
+<h4 class="text-label-md font-label-md text-on-surface-variant flex items-center justify-between">
+                                TO DO <span class="bg-white/10 px-2 py-0.5 rounded text-[10px]">3</span>
+</h4>
+<div class="space-y-3 overflow-y-auto pr-1">
+<!-- Task Card -->
+<div class="glass-panel-elevated p-4 rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+<div class="flex justify-between items-start mb-2">
+<span class="px-2 py-1 rounded text-[10px] font-label-sm uppercase tracking-wider bg-error/20 text-error">High Priority</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[16px]">more_horiz</span>
+</div>
+<h5 class="text-body-sm font-body-sm font-medium text-on-surface mb-2">Implement AVL Tree Balancing</h5>
+<div class="flex items-center gap-2 text-on-surface-variant text-[12px]">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span> Oct 25
+                                    </div>
+</div>
+<!-- Task Card -->
+<div class="glass-panel p-4 rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+<div class="flex justify-between items-start mb-2">
+<span class="px-2 py-1 rounded text-[10px] font-label-sm uppercase tracking-wider bg-secondary/20 text-secondary">Reading</span>
+</div>
+<h5 class="text-body-sm font-body-sm font-medium text-on-surface mb-2">Chapter 4: Graph Traversal</h5>
+</div>
+</div>
+</div>
+<!-- Doing Column -->
+<div class="flex flex-col gap-4 bg-black/20 rounded-lg p-4">
+<h4 class="text-label-md font-label-md text-on-surface-variant flex items-center justify-between">
+                                DOING <span class="bg-primary/20 text-primary px-2 py-0.5 rounded text-[10px]">1</span>
+</h4>
+<div class="space-y-3 overflow-y-auto pr-1">
+<!-- Active Task Card -->
+<div class="glass-panel p-4 rounded-lg neon-border-primary">
+<div class="flex justify-between items-start mb-2">
+<span class="px-2 py-1 rounded text-[10px] font-label-sm uppercase tracking-wider bg-tertiary/20 text-tertiary">Coding</span>
+</div>
+<h5 class="text-body-sm font-body-sm font-medium text-on-surface mb-2">Binary Search Tree Deletion Logic</h5>
+<div class="mt-3">
+<div class="flex justify-between text-[10px] text-on-surface-variant mb-1">
+<span>Progress</span> <span>60%</span>
+</div>
+<div class="h-1 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-secondary-container to-tertiary w-[60%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Done Column -->
+<div class="flex flex-col gap-4 bg-black/20 rounded-lg p-4">
+<h4 class="text-label-md font-label-md text-on-surface-variant flex items-center justify-between">
+                                DONE <span class="bg-white/10 px-2 py-0.5 rounded text-[10px]">12</span>
+</h4>
+<div class="space-y-3 overflow-y-auto pr-1 opacity-60">
+<!-- Done Task Card -->
+<div class="glass-panel p-4 rounded-lg">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-green-400 text-[16px]">check_circle</span>
+<h5 class="text-body-sm font-body-sm font-medium text-on-surface line-through">Setup Dev Environment</h5>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Deadlines & Quick Stats -->
+<div class="xl:col-span-4 flex flex-col gap-6">
+<!-- Next Deadlines -->
+<div class="glass-panel rounded-xl p-6">
+<h3 class="text-headline-sm font-headline-sm text-on-surface mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary">event_upcoming</span> Next Deadlines
+                    </h3>
+<ul class="space-y-4">
+<li class="flex items-start gap-4 pb-4 border-b border-white/5 relative">
+<!-- Indicator dot -->
+<div class="absolute left-[-16px] top-1.5 w-2 h-2 rounded-full bg-error shadow-[0_0_8px_rgba(255,180,171,0.8)]"></div>
+<div class="bg-white/5 rounded-lg px-3 py-2 text-center min-w-[60px]">
+<span class="block text-label-sm text-error uppercase font-bold">Tomorrow</span>
+</div>
+<div>
+<h4 class="text-body-sm font-body-sm font-medium text-on-surface">Data Structures Midterm</h4>
+<p class="text-label-sm text-on-surface-variant mt-1">Weight: 30% of Grade</p>
+</div>
+</li>
+<li class="flex items-start gap-4 pb-4 border-b border-white/5">
+<div class="bg-white/5 rounded-lg px-3 py-2 text-center min-w-[60px]">
+<span class="block text-label-sm text-on-surface-variant uppercase">Oct 28</span>
+</div>
+<div>
+<h4 class="text-body-sm font-body-sm font-medium text-on-surface">Project Phase 1 Submission</h4>
+<p class="text-label-sm text-on-surface-variant mt-1">Submit via GitHub</p>
+</div>
+</li>
+</ul>
+<button class="w-full mt-4 py-2 rounded-lg border border-white/10 text-label-md font-label-md text-on-surface-variant hover:bg-white/5 transition-colors">
+                        View Full Calendar
+                    </button>
+</div>
+<!-- Performance Metric -->
+<div class="glass-panel rounded-xl p-6 relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-secondary-container/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Subject Mastery</h3>
+<span class="material-symbols-outlined text-secondary">trending_up</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-display-lg font-display-lg text-on-surface">78</span><span class="text-headline-sm text-on-surface-variant">%</span>
+</div>
+<!-- Sparkline Mockup (using a simple SVG path for aesthetic) -->
+<div class="mt-4 h-12 w-full">
+<svg class="w-full h-full preserve-3d" preserveaspectratio="none" viewbox="0 0 100 30">
+<path class="drop-shadow-[0_2px_4px_rgba(0,162,230,0.5)]" d="M0,25 Q10,20 20,25 T40,15 T60,20 T80,5 T100,10" fill="none" stroke="rgba(0,162,230,0.5)" stroke-width="2"></path>
+<path d="M0,30 L0,25 Q10,20 20,25 T40,15 T60,20 T80,5 T100,10 L100,30 Z" fill="url(#sparkGradient)" opacity="0.3"></path>
+<defs>
+<lineargradient id="sparkGradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#00a2e6" stop-opacity="0.5"></stop>
+<stop offset="100%" stop-color="#00a2e6" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+</svg>
+</div>
+</div>
+<!-- Resource Link -->
+<a class="glass-panel rounded-xl p-4 flex items-center gap-4 hover:border-primary/40 transition-colors group" href="#">
+<div class="w-10 h-10 rounded bg-white/5 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-primary">book</span>
+</div>
+<div class="flex-1">
+<h4 class="text-body-sm font-body-sm font-medium text-on-surface">Course Syllabus &amp; Rubric</h4>
+<p class="text-[12px] text-on-surface-variant">PDF Document</p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">open_in_new</span>
+</a>
+</div>
+</div>
+</main>
+</body></html>

@@ -1,0 +1,30 @@
+{
+  "name": "edu-track-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plataforma acadêmica EduTrack AI",
+  "scripts": {
+    "dev": "corepack pnpm@9.15.2 --parallel --filter @edu-track/api --filter @edu-track/web dev",
+    "dev:analytics": "python -m uvicorn app.main:app --app-dir apps/analytics --reload --port 8000",
+    "build": "corepack pnpm@9.15.2 --recursive build",
+    "lint": "corepack pnpm@9.15.2 --recursive lint",
+    "test": "corepack pnpm@9.15.2 --recursive test",
+    "typecheck": "corepack pnpm@9.15.2 --recursive typecheck",
+    "prisma:generate": "prisma generate --schema schema.prisma",
+    "prisma:migrate:dev": "prisma migrate dev --schema schema.prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.2",
+    "eslint": "^9.17.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2",
+    "prisma": "^6.1.0",
+    "typescript-eslint": "^8.18.1",
+    "typescript": "^5.7.2"
+  },
+  "packageManager": "pnpm@9.15.2"
+}

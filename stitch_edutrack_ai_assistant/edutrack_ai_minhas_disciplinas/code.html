@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>EduTrack AI - Subjects</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=Sora:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#732ee4",
+                        "surface-container-high": "#2c2833",
+                        "surface-dim": "#15121b",
+                        "surface-variant": "#37333e",
+                        "on-primary-container": "#ede0ff",
+                        "on-error-container": "#ffdad6",
+                        "background": "#15121b",
+                        "tertiary-fixed": "#ffd6fd",
+                        "on-surface": "#e8dfee",
+                        "on-primary": "#3f008e",
+                        "on-background": "#e8dfee",
+                        "on-tertiary-container": "#ffdbfc",
+                        "error": "#ffb4ab",
+                        "inverse-surface": "#e8dfee",
+                        "secondary-fixed": "#c9e6ff",
+                        "secondary-container": "#00a2e6",
+                        "outline": "#958da1",
+                        "error-container": "#93000a",
+                        "primary-fixed": "#eaddff",
+                        "on-primary-fixed": "#25005a",
+                        "primary-fixed-dim": "#d2bbff",
+                        "primary": "#d2bbff",
+                        "surface-container": "#221e28",
+                        "on-secondary-container": "#00344e",
+                        "on-tertiary-fixed": "#36003e",
+                        "on-surface-variant": "#ccc3d8",
+                        "on-primary-fixed-variant": "#5a00c6",
+                        "tertiary": "#fbabff",
+                        "primary-container": "#7c3aed",
+                        "surface-container-lowest": "#100d16",
+                        "tertiary-fixed-dim": "#fbabff",
+                        "outline-variant": "#4a4455",
+                        "on-error": "#690005",
+                        "tertiary-container": "#af09c7",
+                        "surface-container-highest": "#37333e",
+                        "on-tertiary-fixed-variant": "#7c008e",
+                        "surface-tint": "#d2bbff",
+                        "on-tertiary": "#580065",
+                        "surface-container-low": "#1d1a24",
+                        "on-secondary-fixed": "#001e2f",
+                        "on-secondary": "#00344d",
+                        "surface": "#15121b",
+                        "secondary": "#89ceff",
+                        "on-secondary-fixed-variant": "#004c6e",
+                        "surface-bright": "#3c3742",
+                        "secondary-fixed-dim": "#89ceff",
+                        "inverse-on-surface": "#332f39"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "sidebar-width": "260px",
+                        "container-padding": "32px",
+                        "card-gap": "20px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["JetBrains Mono"],
+                        "headline-sm": ["Sora"],
+                        "body-sm": ["Inter"],
+                        "headline-lg": ["Sora"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["JetBrains Mono"],
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Sora"],
+                        "headline-lg-mobile": ["Sora"],
+                        "headline-md": ["Sora"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "500" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "14px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0B0E14;
+            background-image: radial-gradient(circle at 10% 10%, rgba(124, 58, 237, 0.05) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 90%, rgba(0, 162, 230, 0.05) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            border-color: rgba(210, 187, 255, 0.3);
+            box-shadow: inset 0 0 20px rgba(124, 58, 237, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed 0%, #00a2e6 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            box-shadow: 0 0 15px rgba(124, 58, 237, 0.4);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid #00a2e6;
+            color: #00a2e6;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-ghost:hover {
+            background: rgba(0, 162, 230, 0.1);
+            box-shadow: 0 0 10px rgba(0, 162, 230, 0.2);
+        }
+
+        .progress-track {
+            stroke: rgba(255, 255, 255, 0.1);
+        }
+        
+        .progress-fill {
+            stroke: url(#neon-gradient);
+            filter: drop-shadow(0 0 4px rgba(210, 187, 255, 0.5));
+        }
+        
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="text-on-background font-body-md antialiased overflow-x-hidden min-h-screen flex flex-col md:flex-row">
+<!-- Definitions for SVG gradients -->
+<svg class="hidden" height="0" width="0">
+<defs>
+<lineargradient id="neon-gradient" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#00a2e6"></stop>
+<stop offset="100%" stop-color="#fbabff"></stop>
+</lineargradient>
+</defs>
+</svg>
+<!-- SideNavBar -->
+<nav class="w-sidebar-width h-full fixed left-0 top-0 bg-surface-container-low/50 backdrop-blur-xl border-r border-white/10 shadow-xl flex flex-col py-gutter px-4 z-50 hidden md:flex">
+<div class="mb-10 pl-4">
+<h1 class="text-headline-sm font-headline-sm font-bold text-primary flex items-center gap-3">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+                EduTrack AI
+            </h1>
+<p class="text-label-sm font-label-sm text-on-surface-variant mt-1 opacity-70">Mission Control</p>
+</div>
+<button class="btn-primary w-full py-3 rounded-lg flex items-center justify-center gap-2 text-white font-label-md mb-8 hover:scale-95 transition-transform">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+            Create Task
+        </button>
+<ul class="flex flex-col gap-2 flex-grow">
+<!-- Inactive Tab -->
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant font-medium hover:bg-white/5 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="dashboard">dashboard</span>
+<span class="text-label-md font-label-md">Dashboard</span>
+</a>
+</li>
+<!-- Active Tab -->
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-primary font-bold border-l-4 border-primary bg-primary/10 scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="menu_book" data-weight="fill" style="font-variation-settings: 'FILL' 1;">menu_book</span>
+<span class="text-label-md font-label-md">Subjects</span>
+</a>
+</li>
+<!-- Inactive Tabs -->
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant font-medium hover:bg-white/5 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="assignment">assignment</span>
+<span class="text-label-md font-label-md">Tasks</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant font-medium hover:bg-white/5 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="assessment">assessment</span>
+<span class="text-label-md font-label-md">Reports</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant font-medium hover:bg-white/5 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="psychology">psychology</span>
+<span class="text-label-md font-label-md">AI Insights</span>
+</a>
+</li>
+</ul>
+<div class="mt-auto pt-8 border-t border-white/5">
+<ul class="flex flex-col gap-2">
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant font-medium hover:bg-white/5 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="settings">settings</span>
+<span class="text-label-md font-label-md">Settings</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant font-medium hover:bg-white/5 hover:text-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="help">help</span>
+<span class="text-label-md font-label-md">Support</span>
+</a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 md:ml-[260px] flex flex-col min-h-screen">
+<!-- TopAppBar -->
+<header class="w-full h-24 bg-transparent flex justify-between items-center px-6 md:px-container-padding sticky top-0 z-40 backdrop-blur-sm">
+<div class="md:hidden flex items-center gap-4">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="menu">menu</span>
+<span class="text-headline-sm font-headline-sm font-bold text-primary">EduTrack AI</span>
+</div>
+<div class="hidden md:flex flex-1 max-w-xl relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="w-full bg-surface-variant/50 border border-white/10 rounded-full py-2 pl-12 pr-4 text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all placeholder-on-surface-variant/50" placeholder="Search subjects, tasks..." type="text"/>
+</div>
+<div class="flex items-center gap-6 ml-auto">
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="hover:text-primary-fixed-dim transition-colors relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-tertiary shadow-[0_0_8px_rgba(251,171,255,0.8)]"></span>
+</button>
+<button class="hover:text-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+</button>
+</div>
+<div class="h-10 w-10 rounded-full bg-surface-variant border border-white/10 overflow-hidden flex items-center justify-center">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="A detailed headshot of a student in a futuristic, neon-lit academic setting. The lighting is moody with purple and blue rim lights illuminating their face. They look focused and determined. High-tech minimalist aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRtboFsLtMBnP204lRrwaURFqGsHC34kdmBu50VsEjjdAkw4Wadz3lIiJaKVUQWfklxfTkb1nnVRLY7OM_ezIs4mMHzB7xukMeRAg7PFgvjcYYxqbMFaWOwe908S8LqC06LZduZ52fkHaje4BP6bmGPGcOvei30V2GxBEckG97ttSiL8ijqyrU8CNDPPwogF-U58rBlYppFCZyXQClsjcrWWKYtjlIZ5KH4LJx-mZkI80UHJofMLRkdA"/>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<main class="flex-1 p-6 md:p-container-padding pt-0 flex flex-col gap-8">
+<!-- Page Header & Actions -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+<div>
+<h2 class="text-display-lg font-display-lg text-on-surface mb-2">Subjects</h2>
+<p class="text-body-lg font-body-lg text-on-surface-variant">Manage your academic disciplines and track progress.</p>
+</div>
+<div class="flex flex-wrap items-center gap-4">
+<!-- Filters -->
+<div class="flex bg-surface-variant/30 rounded-lg p-1 border border-white/5 backdrop-blur-md">
+<button class="px-4 py-2 rounded-md bg-primary/20 text-primary text-label-sm font-label-sm shadow-[inset_0_0_10px_rgba(124,58,237,0.2)] border border-primary/30">All</button>
+<button class="px-4 py-2 rounded-md text-on-surface-variant hover:text-on-surface text-label-sm font-label-sm transition-colors">In Progress</button>
+<button class="px-4 py-2 rounded-md text-on-surface-variant hover:text-on-surface text-label-sm font-label-sm transition-colors">High Priority</button>
+</div>
+<button class="btn-primary px-6 py-2.5 rounded-lg flex items-center gap-2 text-white text-label-md font-label-md">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                        Add Subject
+                    </button>
+</div>
+</div>
+<!-- Bento Grid / Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-card-gap">
+<!-- Subject Card 1 -->
+<div class="glass-card rounded-xl p-6 flex flex-col gap-6 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+<div class="flex justify-between items-start relative z-10">
+<div>
+<span class="text-xs font-label-sm text-tertiary bg-tertiary/10 px-2 py-1 rounded border border-tertiary/20 mb-3 inline-block">CS401</span>
+<h3 class="text-headline-md font-headline-md text-on-surface">Advanced Machine Learning</h3>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+<div class="flex items-center gap-4 bg-surface-variant/20 p-3 rounded-lg border border-white/5">
+<div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden">
+<img alt="Professor portrait" class="w-full h-full object-cover" data-alt="A portrait of a distinguished computer science professor in a high-tech laboratory environment. Soft blue ambient lighting highlights their features against a dark, out-of-focus background of server racks. Modern, cinematic style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqSvh7HtkMLmQxXUlcUp8HwiKiBseOOlv1NjBRvSnRmkZSoJmf1Kf1NSrMi18d0prL-B1XPvsfdXS1adzZsVYIkuDuWa1SL62S84w2AnMFbKFgT8CqSmAdn8WeyEGZNN4EM2BPFC83LPOzKkLDsV1BYfRUoOz4Ihqw3u4okLhSo5KkLd-auw7M9qfNvlFemguKQxZHw5txt8aSvsBKdSRiBps33Bt-_boRe6NocwdDRSkWipXuDN56Ug"/>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Professor</p>
+<p class="text-body-sm font-body-sm text-on-surface">Dr. Alan Turing</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mt-2">
+<div>
+<p class="text-label-sm font-label-sm text-on-surface-variant mb-1">Total Hours</p>
+<p class="text-headline-sm font-headline-sm text-secondary">45h</p>
+</div>
+<div class="flex justify-end">
+<div class="relative w-14 h-14">
+<svg class="w-full h-full -rotate-90" viewbox="0 0 36 36">
+<path class="progress-track" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="3"></path>
+<path class="progress-fill" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="75, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center text-label-sm font-label-sm text-on-surface">75%</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Subject Card 2 -->
+<div class="glass-card rounded-xl p-6 flex flex-col gap-6 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+<div class="flex justify-between items-start relative z-10">
+<div>
+<span class="text-xs font-label-sm text-secondary bg-secondary/10 px-2 py-1 rounded border border-secondary/20 mb-3 inline-block">PHY302</span>
+<h3 class="text-headline-md font-headline-md text-on-surface">Quantum Mechanics II</h3>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+<div class="flex items-center gap-4 bg-surface-variant/20 p-3 rounded-lg border border-white/5">
+<div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="person">person</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Professor</p>
+<p class="text-body-sm font-body-sm text-on-surface">Dr. Richard Feynman</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mt-2">
+<div>
+<p class="text-label-sm font-label-sm text-on-surface-variant mb-1">Total Hours</p>
+<p class="text-headline-sm font-headline-sm text-secondary">60h</p>
+</div>
+<div class="flex justify-end">
+<div class="relative w-14 h-14">
+<svg class="w-full h-full -rotate-90" viewbox="0 0 36 36">
+<path class="progress-track" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="3"></path>
+<path class="progress-fill" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="40, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center text-label-sm font-label-sm text-on-surface">40%</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Subject Card 3 (Empty State / Placeholder) -->
+<div class="glass-card rounded-xl p-6 flex flex-col items-center justify-center gap-4 text-center border-dashed border-2 border-white/10 hover:border-primary/50 cursor-pointer group">
+<div class="w-16 h-16 rounded-full bg-surface-variant/50 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-3xl text-on-surface-variant group-hover:text-primary" data-icon="add">add</span>
+</div>
+<div>
+<h4 class="text-headline-sm font-headline-sm text-on-surface mb-1">Enroll in Subject</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant max-w-[200px]">Browse the catalog or enter a course code.</p>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

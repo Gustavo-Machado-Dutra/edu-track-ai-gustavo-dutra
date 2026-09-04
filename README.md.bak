@@ -1,0 +1,33 @@
+﻿# EduTrack AI
+
+Projeto acadÃªmico para organizaÃ§Ã£o, acompanhamento de tarefas e anÃ¡lise acadÃªmica com IA.
+
+## Estrutura inicial
+
+```text
+apps/
+  api/        NestJS + Fastify
+  analytics/  FastAPI + Pandas
+  web/        React + TypeScript
+schema.prisma Modelo fÃ­sico PostgreSQL/Prisma
+```
+
+## Desenvolvimento
+
+1. Copie `.env.example` para `.env` e ajuste os valores locais.
+2. Suba PostgreSQL e Redis com `docker compose up -d` (PostgreSQL publicado em `localhost:5433` para evitar conflito com instalações locais).
+3. Instale dependÃªncias Node com `pnpm install`.
+4. Gere o Prisma Client com `pnpm prisma:generate`.
+5. Rode API e Web com `pnpm dev`.
+6. Rode Analytics com `pnpm dev:analytics`.
+
+## Escopo iniciado
+
+- Monorepo com `pnpm`, conforme `SPEC.md` e `context.md`.
+- Backend base com prefixo `/api/v1`, Fastify, Swagger, validaÃ§Ã£o global e Prisma Service.
+- Frontend base com identidade visual inicial do `DESIGN.md`.
+- ServiÃ§o Analytics base com endpoint de saÃºde e teste unitÃ¡rio.
+- PostgreSQL e Redis configurados para desenvolvimento local.
+
+Funcionalidades bloqueadas por decisÃµes P0 ainda indefinidas nÃ£o foram implementadas.
+
