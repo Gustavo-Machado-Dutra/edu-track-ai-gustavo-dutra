@@ -17,11 +17,13 @@ schema.prisma Schema Prisma (raiz)
 
 1. Copie `.env.example` para `.env` e ajuste os valores locais.
 2. Suba PostgreSQL e Redis com `docker compose up -d` (PostgreSQL publicado em `localhost:5433` para evitar conflito com instalações locais).
-3. Instale dependências Node com `pnpm install`.
-4. Gere o Prisma Client com `pnpm prisma:generate`.
-5. Aplique migrations com `pnpm prisma:migrate`.
-6. Rode API e Web com `pnpm dev`.
-7. Rode Analytics com `pnpm dev:analytics`.
+3. Instale dependências Node com `corepack pnpm@9.15.2 install`.
+4. Gere o Prisma Client com `corepack pnpm@9.15.2 prisma:generate`.
+5. Aplique migrations com `corepack pnpm@9.15.2 prisma:migrate:dev`.
+6. Rode API e Web com `corepack pnpm@9.15.2 dev`.
+7. Rode Analytics com `corepack pnpm@9.15.2 dev:analytics`.
+
+O projeto fixa o pnpm na versão `9.15.2` via Corepack. Se `pnpm` não for reconhecido no PowerShell, use os comandos acima ou execute `corepack enable pnpm` uma vez para criar o comando global.
 
 ## Endpoints disponíveis
 
@@ -84,19 +86,19 @@ schema.prisma Schema Prisma (raiz)
 ### API (NestJS)
 ```bash
 cd apps/api
-pnpm test
-pnpm typecheck
-pnpm lint
-pnpm build
+corepack pnpm@9.15.2 test
+corepack pnpm@9.15.2 typecheck
+corepack pnpm@9.15.2 lint
+corepack pnpm@9.15.2 build
 ```
 
 ### Web (React)
 ```bash
 cd apps/web
-pnpm test
-pnpm typecheck
-pnpm lint
-pnpm build
+corepack pnpm@9.15.2 test
+corepack pnpm@9.15.2 typecheck
+corepack pnpm@9.15.2 lint
+corepack pnpm@9.15.2 build
 ```
 
 ### Analytics (FastAPI)

@@ -1,11 +1,12 @@
 ﻿import { useState } from 'react';
 import { DashboardPage } from './pages/DashboardPage';
+import { useEffect } from 'react';
 import { LoginPage } from './pages/LoginPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { SubjectsPage } from './pages/SubjectsPage';
 import { StudySessionsPage } from './pages/StudySessionsPage';
 import { TasksPage } from './pages/TasksPage';
-import { clearSession, getAccessToken } from './services/api';
+import { AUTH_SESSION_EXPIRED_EVENT, clearSession, getAccessToken } from './services/api';
 
 type Page = 'dashboard' | 'tasks' | 'subjects' | 'sessions' | 'settings';
 
@@ -19,6 +20,13 @@ const navigationItems: Array<{ page: Page; label: string; icon: string }> = [
 export function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getAccessToken()));
   const [page, setPage] = useState<Page>('dashboard');
+
+  useEffect(() => {
+    const handleSessionExpired = () => setIsAuthenticated(false);
+
+    window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, handleSessionExpired);
+    return () => window.removeEventListener(AUTH_SESSION_EXPIRED_EVENT, handleSessionExpired);
+  }, []);
 
   if (!isAuthenticated) return <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />;
 
