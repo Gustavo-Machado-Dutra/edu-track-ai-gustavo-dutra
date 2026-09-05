@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { Input } from '../components/Input';
@@ -12,6 +12,14 @@ function getLocalDateTime() {
   return localNow.toISOString().slice(0, 16);
 }
 
+function formatElapsedTime(startedAt: string, now: number) {
+  const elapsedSeconds = Math.max(0, Math.floor((now - new Date(startedAt).getTime()) / 1000));
+  const hours = Math.floor(elapsedSeconds / 3600).toString().padStart(2, '0');
+  const minutes = Math.floor((elapsedSeconds % 3600) / 60).toString().padStart(2, '0');
+  const seconds = (elapsedSeconds % 60).toString().padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+}
+
 type SessionMode = 'record' | 'start';
 
 export function StudySessionsPage() {
@@ -23,6 +31,7 @@ export function StudySessionsPage() {
   const [endingSessionId, setEndingSessionId] = useState<string | null>(null);
   const [formError, setFormError] = useState('');
   const [sessionMode, setSessionMode] = useState<SessionMode>('record');
+  const [now, setNow] = useState(() => Date.now());
   const [newSession, setNewSession] = useState({
     subjectId: '',
     taskId: '',
@@ -36,6 +45,12 @@ export function StudySessionsPage() {
   );
   const activeSessions = sessions.filter((session) => !session.endedAt);
   const completedSessions = sessions.filter((session) => session.endedAt);
+
+  useEffect(() => {
+    if (activeSessions.length === 0) return undefined;
+    const interval = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(interval);
+  }, [activeSessions.length]);
 
   const resetForm = () => {
     setNewSession({
@@ -62,10 +77,13 @@ export function StudySessionsPage() {
 
     setIsSaving(true);
     setFormError('');
+    const startedAt = sessionMode === 'start' ? new Date().toISOString() : new Date(newSession.startedAt).toISOString();
+    const endedAt = sessionMode === 'record' ? new Date(new Date(startedAt).getTime() + durationMinutes * 60 * 1000).toISOString() : undefined;
     const created = await createSession({
       subjectId: newSession.subjectId,
       taskId: newSession.taskId || undefined,
-      startedAt: sessionMode === 'start' ? new Date().toISOString() : new Date(newSession.startedAt).toISOString(),
+      startedAt,
+      endedAt,
       durationSeconds: sessionMode === 'record' ? durationMinutes * 60 : undefined,
     });
     setIsSaving(false);
@@ -176,14 +194,16 @@ export function StudySessionsPage() {
           <h2>Sessões em andamento</h2>
           <div className="sessions-list">
             {activeSessions.map((session) => (
-              <Card key={session.id} variant="outlined" padding="sm">
+              <Card key={session.id} variant="outlined" padding="sm" className="active-session-card">
                 <article className="session-item">
                   <div>
+                    <span className="session-live-badge"><i /> AO VIVO</span>
                     <h3>{session.subject.name}</h3>
                     {session.task && <p>{session.task.title}</p>}
                   </div>
                   <div className="session-meta">
-                    <strong className="session-active-label">Em andamento</strong>
+                    <strong className="session-timer" aria-label="Tempo decorrido">{formatElapsedTime(session.startedAt, now)}</strong>
+                    <small className="session-active-label">Em andamento</small>
                     <Button size="sm" onClick={() => handleEnd(session.id)} isLoading={endingSessionId === session.id}>
                       Encerrar agora
                     </Button>

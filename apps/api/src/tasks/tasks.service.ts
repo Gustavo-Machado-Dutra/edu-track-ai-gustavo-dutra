@@ -9,6 +9,11 @@ export class TasksService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateTaskDto) {
+    const title = dto.title.trim();
+    if (!title) {
+      throw new NotFoundException('O título da tarefa é obrigatório');
+    }
+
     const subject = await this.prisma.subject.findFirst({
       where: { id: dto.subjectId, userId },
       select: { id: true },
@@ -22,7 +27,7 @@ export class TasksService {
       data: {
         userId,
         subjectId: dto.subjectId,
-        title: dto.title,
+        title,
         description: dto.description,
         priority: dto.priority ?? 'MEDIUM',
         difficulty: dto.difficulty ?? 'MEDIUM',
@@ -82,6 +87,10 @@ export class TasksService {
       throw new NotFoundException('Tarefa não encontrada');
     }
 
+    if (dto.title !== undefined && !dto.title.trim()) {
+      throw new NotFoundException('O título da tarefa é obrigatório');
+    }
+
     if (dto.subjectId) {
       const subject = await this.prisma.subject.findFirst({
         where: { id: dto.subjectId, userId },
@@ -94,7 +103,7 @@ export class TasksService {
     }
 
     const data: Prisma.AcademicTaskUncheckedUpdateInput = {
-      title: dto.title,
+      title: dto.title?.trim(),
       description: dto.description,
       priority: dto.priority,
       difficulty: dto.difficulty,

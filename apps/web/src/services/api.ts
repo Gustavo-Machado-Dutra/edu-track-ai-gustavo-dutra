@@ -3,6 +3,7 @@
 const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
 const ACCESS_TOKEN_KEY = 'edutrack.accessToken';
 const REFRESH_TOKEN_KEY = 'edutrack.refreshToken';
+const USER_KEY = 'edutrack.user';
 export const AUTH_SESSION_EXPIRED_EVENT = 'edutrack:session-expired';
 
 type AuthSession = {
@@ -22,9 +23,22 @@ export function saveSession(tokens: { accessToken: string; refreshToken: string 
   window.localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
 }
 
+export function getStoredUser<T>() {
+  const rawUser = window.localStorage.getItem(USER_KEY);
+  if (!rawUser) return null;
+
+  try {
+    return JSON.parse(rawUser) as T;
+  } catch {
+    window.localStorage.removeItem(USER_KEY);
+    return null;
+  }
+}
+
 export function clearSession() {
   window.localStorage.removeItem(ACCESS_TOKEN_KEY);
   window.localStorage.removeItem(REFRESH_TOKEN_KEY);
+  window.localStorage.removeItem(USER_KEY);
 }
 
 function getRefreshToken() {
@@ -93,6 +107,7 @@ async function refreshSession() {
     }
 
     saveSession(result.data);
+    if (result.data.user) window.localStorage.setItem(USER_KEY, JSON.stringify(result.data.user));
     return true;
   } catch {
     return false;
@@ -161,6 +176,7 @@ export async function login(credentials: { email: string; password: string }) {
 
   if (!response.error) {
     saveSession(response.data);
+    if (response.data.user) window.localStorage.setItem(USER_KEY, JSON.stringify(response.data.user));
   }
 
   return response;
@@ -178,6 +194,7 @@ export async function register(credentials: { name: string; email: string; passw
 
   if (!response.error) {
     saveSession(response.data);
+    if (response.data.user) window.localStorage.setItem(USER_KEY, JSON.stringify(response.data.user));
   }
 
   return response;

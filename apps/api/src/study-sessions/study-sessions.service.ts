@@ -27,6 +27,17 @@ export class StudySessionsService {
       durationSeconds = Math.floor((endedAt.getTime() - startedAt.getTime()) / 1000);
     }
 
+    if (durationSeconds !== undefined && durationSeconds < 1) {
+      throw new BadRequestException('A duração da sessão deve ser maior que zero');
+    }
+
+    if (durationSeconds !== undefined && endedAt) {
+      const expectedDuration = Math.floor((endedAt.getTime() - startedAt.getTime()) / 1000);
+      if (durationSeconds !== expectedDuration) {
+        throw new BadRequestException('A duração da sessão não corresponde ao intervalo informado');
+      }
+    }
+
     if (dto.taskId) {
       const task = await this.prisma.academicTask.findFirst({
         where: { id: dto.taskId, userId, subjectId: dto.subjectId },

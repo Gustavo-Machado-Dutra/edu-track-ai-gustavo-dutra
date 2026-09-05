@@ -26,7 +26,7 @@ export function useSubjects() {
     }
   }, []);
 
-  const createSubject = useCallback(async (subject: { name: string; professor?: string }) => {
+  const createSubject = useCallback(async (subject: { name: string; professor?: string; workloadHours?: number; description?: string; startDate?: string; endDate?: string }) => {
     try {
       const data: ApiResponse<Subject> = await apiRequest('/subjects', {
         method: 'POST',
@@ -35,15 +35,18 @@ export function useSubjects() {
 
       if (!data.error) {
         setSubjects((prev) => [...prev, data.data]);
+      } else {
+        setError(data.error.message);
       }
 
       return data.error ? null : data.data;
     } catch {
+      setError('Erro ao criar disciplina');
       return null;
     }
   }, []);
 
-  const updateSubject = useCallback(async (id: string, subject: { name: string; professor?: string }) => {
+  const updateSubject = useCallback(async (id: string, subject: { name: string; professor?: string; workloadHours?: number; description?: string; startDate?: string | null; endDate?: string | null }) => {
     try {
       const data: ApiResponse<Subject> = await apiRequest(`/subjects/${id}`, {
         method: 'PATCH',

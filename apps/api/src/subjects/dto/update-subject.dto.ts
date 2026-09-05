@@ -24,11 +24,11 @@ export class UpdateSubjectDto {
 
   @IsDateString()
   @IsOptional()
-  startDate?: string;
+  startDate?: string | null;
 
   @IsDateString()
   @IsOptional()
-  endDate?: string;
+  endDate?: string | null;
 }
 
 

@@ -1,6 +1,8 @@
 ﻿export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 export type TaskDifficulty = 'EASY' | 'MEDIUM' | 'HARD';
+export type TaskCreator = 'USER' | 'AGENT' | 'SYSTEM';
+export type ReportStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
 
 export interface User {
   id: string;
@@ -17,6 +19,9 @@ export interface Subject {
   professor?: string;
   workloadHours?: string;
   description?: string;
+  startDate?: string;
+  endDate?: string;
+  archivedAt?: string;
 }
 
 export interface Task {
@@ -30,6 +35,7 @@ export interface Task {
   dueDate?: string;
   estimatedMinutes?: number;
   completedAt?: string;
+  createdBy?: TaskCreator;
   createdAt: string;
 }
 
@@ -62,4 +68,15 @@ export interface TaskHistory {
   fromDueDate?: string;
   toDueDate?: string;
   changedAt: string;
+}
+
+export interface WeeklyReport {
+  id: string;
+  periodStart: string;
+  periodEnd: string;
+  status: ReportStatus;
+  storageKey?: string;
+  fileName?: string;
+  generatedAt?: string;
+  createdAt: string;
 }

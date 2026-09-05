@@ -13,7 +13,7 @@ export class CreateStudySessionDto {
 
   @IsDateString()
   @IsOptional()
-  endedAt?: string;
+  endedAt?: string | null;
 
   @IsInt()
   @Min(1)

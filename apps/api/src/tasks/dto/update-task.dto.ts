@@ -1,4 +1,4 @@
-﻿import { IsEnum, IsInt, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+﻿import { IsDateString, IsEnum, IsInt, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 enum TaskPriority {
   LOW = 'LOW',
@@ -46,7 +46,7 @@ export class UpdateTaskDto {
   @IsOptional()
   status?: TaskStatus;
 
-  @IsString()
+  @IsDateString()
   @IsOptional()
   dueDate?: string | null;
 

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSubjectDto } from './dto/create-subject.dto';
 import { UpdateSubjectDto } from './dto/update-subject.dto';
@@ -8,6 +8,10 @@ export class SubjectsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateSubjectDto) {
+    if (dto.startDate && dto.endDate && new Date(dto.endDate) < new Date(dto.startDate)) {
+      throw new BadRequestException('O fim da disciplina deve ocorrer após o início');
+    }
+
     return this.prisma.subject.create({
       data: {
         userId,
@@ -23,7 +27,7 @@ export class SubjectsService {
 
   async findAllByUser(userId: string) {
     return this.prisma.subject.findMany({
-      where: { userId },
+      where: { userId, archivedAt: null },
       orderBy: { name: 'asc' },
     });
   }
@@ -53,14 +57,20 @@ export class SubjectsService {
   }
 
   async update(id: string, userId: string, dto: UpdateSubjectDto) {
-    await this.findByIdForUser(id, userId);
+    const currentSubject = await this.findByIdForUser(id, userId);
+    const startDate = dto.startDate === null ? null : dto.startDate ? new Date(dto.startDate) : currentSubject.startDate;
+    const endDate = dto.endDate === null ? null : dto.endDate ? new Date(dto.endDate) : currentSubject.endDate;
+
+    if (startDate && endDate && endDate < startDate) {
+      throw new BadRequestException('O fim da disciplina deve ocorrer após o início');
+    }
 
     return this.prisma.subject.update({
       where: { id },
       data: {
         ...dto,
-        startDate: dto.startDate ? new Date(dto.startDate) : undefined,
-        endDate: dto.endDate ? new Date(dto.endDate) : undefined,
+        startDate: dto.startDate === null ? null : dto.startDate ? new Date(dto.startDate) : undefined,
+        endDate: dto.endDate === null ? null : dto.endDate ? new Date(dto.endDate) : undefined,
       },
     });
   }

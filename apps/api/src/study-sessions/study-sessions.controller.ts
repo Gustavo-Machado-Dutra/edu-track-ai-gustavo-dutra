@@ -28,7 +28,7 @@ export class StudySessionsController {
 
   @Get(':id')
   @ApiOkResponse({ description: 'Retorna sessão por ID' })
-  async getOne(@CurrentUser() user: CurrentUser, @Param('id') id: string) {
+  async getOne(@CurrentUser() user: CurrentUser, @Param('id', new ParseUUIDPipe()) id: string) {
     const session = await this.studySessionsService.findByIdForUser(id, user.id);
     return { data: session };
   }
