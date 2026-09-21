@@ -51,7 +51,6 @@ export function SettingsPage() {
                 <div><span>Fuso horário</span><strong>{user.timezone}</strong></div>
               </div>
               <div className="profile-actions">
-                <button type="button" className="settings-link">Editar perfil <span aria-hidden="true">→</span></button>
                 <button type="button" className="settings-link settings-link-danger" onClick={() => { clearSession(); window.location.reload(); }}>Encerrar sessão <span aria-hidden="true">↪</span></button>
               </div>
             </Card>
@@ -86,13 +85,11 @@ export function SettingsPage() {
               <span className="settings-card-icon" aria-hidden="true">⌁</span>
               <h2>Segurança</h2>
               <p>Seu acesso é protegido por autenticação JWT e sessão renovável.</p>
-              <button type="button" className="settings-link">Gerenciar acesso <span aria-hidden="true">→</span></button>
             </Card>
             <Card className="support-card" padding="md">
               <span className="settings-card-icon settings-card-icon-blue" aria-hidden="true">?</span>
               <h2>Precisa de ajuda?</h2>
               <p>Consulte orientações para aproveitar melhor seu centro de comando.</p>
-              <button type="button" className="settings-link">Central de suporte <span aria-hidden="true">↗</span></button>
             </Card>
           </div>
         </div>

@@ -1,0 +1,8 @@
+/* Scope the first 2.0 visual slice to the dashboard. */
+.app-content-v2 { background: #f7f8fc; }
+.app-content-v2 .topbar { min-height: 80px; padding-top: 0; border-bottom: 1px solid #e9eaf2; background: #fff; }
+.app-content-v2 .topbar-search { border-color: #e9eaf2; color: #71778b; background: #f7f8fc; }
+.app-content-v2 .topbar-search > span:first-child, .app-content-v2 .icon-button { color: #626a81; }
+.app-content-v2 .icon-button:hover, .app-content-v2 .icon-button.active { color: #6151e7; background: #eeeafd; }
+.app-content-v2 .user-avatar { color: #fff; background: #6151e7; }
+@media (max-width: 760px) { .app-content-v2 .topbar { min-height: 66px; } }

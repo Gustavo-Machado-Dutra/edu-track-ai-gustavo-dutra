@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState } from 'react';
 import { AppLayout } from './components/AppLayout';
 import type { Page } from './components/Sidebar';
-import { DashboardPage } from './pages/DashboardPage';
+import { DashboardV2Page } from './pages/DashboardV2Page';
 import { AIAssistantPage } from './pages/AIAssistantPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { LoginPage } from './pages/LoginPage';
@@ -9,12 +9,26 @@ import { SettingsPage } from './pages/SettingsPage';
 import { SubjectsPage } from './pages/SubjectsPage';
 import { StudySessionsPage } from './pages/StudySessionsPage';
 import { TasksPage } from './pages/TasksPage';
+import { CalendarPage } from './pages/CalendarPage';
+import { ProgressPage } from './pages/ProgressPage';
 import { AUTH_SESSION_EXPIRED_EVENT, clearSession, getAccessToken, getStoredUser } from './services/api';
 import { useTasks } from './hooks/useTasks';
 
+const paths: Record<Page, string> = {
+  dashboard: '/', subjects: '/disciplinas', tasks: '/tarefas', calendar: '/calendario',
+  sessions: '/sessoes', progress: '/progresso', ai: '/agente', reports: '/relatorios', settings: '/configuracoes',
+};
+const pageLabels: Record<Page, string> = {
+  dashboard: 'Visão geral', subjects: 'Disciplinas', tasks: 'Tarefas', calendar: 'Calendário',
+  sessions: 'Sessões de estudo', progress: 'Meu progresso', ai: 'Assistente', reports: 'Relatórios', settings: 'Configurações',
+};
+function pageFromPath(): Page {
+  return (Object.keys(paths) as Page[]).find((candidate) => paths[candidate] === window.location.pathname) ?? 'dashboard';
+}
+
 export function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getAccessToken()));
-  const [page, setPage] = useState<Page>('dashboard');
+  const [page, setPage] = useState<Page>(pageFromPath);
   const [openMenu, setOpenMenu] = useState<'notifications' | 'shortcuts' | 'profile' | null>(null);
   const [storedUser, setStoredUser] = useState(() => getStoredUser<{ name?: string; email?: string }>());
   const userInitials = storedUser?.name?.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'ET';
@@ -31,12 +45,15 @@ export function App() {
       setIsAuthenticated(false);
     };
     const handleDocumentClick = () => setOpenMenu(null);
+    const handlePopState = () => setPage(pageFromPath());
 
     window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, handleSessionExpired);
     document.addEventListener('click', handleDocumentClick);
+    window.addEventListener('popstate', handlePopState);
     return () => {
       window.removeEventListener(AUTH_SESSION_EXPIRED_EVENT, handleSessionExpired);
       document.removeEventListener('click', handleDocumentClick);
+      window.removeEventListener('popstate', handlePopState);
     };
   }, []);
 
@@ -47,26 +64,33 @@ export function App() {
     setOpenMenu((current) => current === menu ? null : menu);
   };
 
-  const navigateFromMenu = (nextPage: Page) => {
+  const navigate = (nextPage: Page) => {
+    if (window.location.pathname !== paths[nextPage]) window.history.pushState(null, '', paths[nextPage]);
     setPage(nextPage);
     setOpenMenu(null);
   };
 
+  const navigateFromMenu = (nextPage: Page) => {
+    navigate(nextPage);
+  };
+
   const pageContent = {
-    dashboard: <DashboardPage />,
+    dashboard: <DashboardV2Page onNavigate={navigate} />,
     tasks: <TasksPage />,
     subjects: <SubjectsPage />,
+    calendar: <CalendarPage onNavigate={navigate} />,
     sessions: <StudySessionsPage />,
+    progress: <ProgressPage />,
     ai: <AIAssistantPage />,
     reports: <ReportsPage />,
     settings: <SettingsPage />,
   }[page];
 
   return (
-    <AppLayout currentPage={page} onNavigate={setPage} onCreateTask={() => setPage('tasks')}>
-      <div className="app-content">
+    <AppLayout currentPage={page} onNavigate={navigate} onCreateTask={() => navigate('tasks')}>
+      <div className="app-content app-content-v2">
         <header className="topbar">
-          <div className="topbar-search" role="search" aria-label="Busca"><span aria-hidden="true">⌕</span><span>Buscar disciplinas e tarefas...</span></div>
+          <div className="topbar-breadcrumb"><span>Meu espaço</span><span aria-hidden="true">/</span><strong>{pageLabels[page]}</strong></div>
           <div className="topbar-actions">
             <div className="topbar-menu-wrap">
             <button type="button" className={`icon-button ${openMenu === 'notifications' ? 'active' : ''}`} aria-label="Notificações" aria-expanded={openMenu === 'notifications'} onClick={toggleMenu('notifications')}>

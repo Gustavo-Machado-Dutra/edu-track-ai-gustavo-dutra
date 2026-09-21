@@ -65,8 +65,8 @@ export function AIAssistantPage() {
     {
       id: 1,
       role: 'assistant',
-      content: 'Olá! Sou seu copiloto acadêmico. Posso analisar seu progresso, encontrar prioridades e ajudar a organizar o próximo passo da sua missão.',
-      metadata: 'ASSISTENTE ONLINE · CONTEXTO LOCAL',
+      content: 'Olá! Posso resumir suas tarefas, progresso e tempo de estudo com base nos dados disponíveis nesta conta.',
+      metadata: 'RESPOSTAS LOCAIS · SEM MODELO DE IA',
     },
   ]);
 
@@ -88,7 +88,7 @@ export function AIAssistantPage() {
         id: Date.now() + 1,
         role: 'assistant',
         content: getSuggestedResponse(trimmedPrompt, tasks, subjects.length, dashboard?.study.totalMinutes ?? 0),
-        metadata: 'ANÁLISE BASEADA NOS SEUS DADOS',
+        metadata: 'RESUMO BASEADO NOS SEUS DADOS',
       }]);
       setIsThinking(false);
     }, 450);
@@ -98,11 +98,11 @@ export function AIAssistantPage() {
     <main className="app-shell ai-page">
       <header className="page-header ai-page-header">
         <div>
-          <p className="eyebrow">Inteligência acadêmica</p>
-          <h1>Seu copiloto de estudos.</h1>
-          <p className="page-description">Pergunte, analise e transforme dados em próximos passos claros.</p>
+          <p className="eyebrow">RESUMO ACADÊMICO</p>
+          <h1>Assistente de estudos</h1>
+          <p className="page-description">Respostas determinísticas sobre suas tarefas e métricas. A conversa com IA ainda não está integrada.</p>
         </div>
-        <span className={`ai-live-status ${isLoadingContext ? 'ai-live-status-loading' : ''}`}><i /> {isLoadingContext ? 'SINCRONIZANDO DADOS' : 'IA ONLINE'}</span>
+        <span className={`ai-live-status ${isLoadingContext ? 'ai-live-status-loading' : ''}`}><i /> {isLoadingContext ? 'SINCRONIZANDO DADOS' : 'DADOS CARREGADOS'}</span>
       </header>
 
       <section className="ai-overview-grid" aria-label="Resumo do assistente">
