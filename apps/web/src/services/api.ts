@@ -199,3 +199,19 @@ export async function register(credentials: { name: string; email: string; passw
 
   return response;
 }
+
+
+export interface AgentChatResponse {
+  conversationId: string;
+  response: {
+    type: 'text' | 'analysis' | 'action';
+    content: unknown;
+  };
+}
+
+export async function chatWithAgent(message: string, conversationId?: string) {
+  return apiRequest<AgentChatResponse>('/ai/chat', {
+    method: 'POST',
+    body: JSON.stringify({ message, ...(conversationId ? { conversationId } : {}) }),
+  });
+}

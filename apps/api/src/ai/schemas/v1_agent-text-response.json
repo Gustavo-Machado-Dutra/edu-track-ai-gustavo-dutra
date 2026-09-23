@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://edutrack.ai/schemas/v1/agent-text-response.json",
+  "title": "AgentTextResponse",
+  "version": "1.0.0",
+  "description": "Resposta textual simples do Agent",
+  "type": "object",
+  "strict": true,
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "content"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "text",
+      "description": "Tipo de resposta: texto simples"
+    },
+    "content": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Conteudo textual da resposta"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Metadados opcionais da resposta"
+    }
+  }
+}

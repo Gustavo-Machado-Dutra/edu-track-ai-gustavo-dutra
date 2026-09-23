@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AiModule } from './ai/ai.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
@@ -19,6 +20,7 @@ import { UsersModule } from './users/users.module';
       isGlobal: true,
     }),
     PrismaModule,
+    AiModule,
     HealthModule,
     AuthModule,
     AnalyticsModule,

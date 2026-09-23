@@ -8,7 +8,7 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 export class TasksService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(userId: string, dto: CreateTaskDto) {
+  async create(userId: string, dto: CreateTaskDto, agentExecutionId?: string) {
     const title = dto.title.trim();
     if (!title) {
       throw new NotFoundException('O título da tarefa é obrigatório');
@@ -34,6 +34,7 @@ export class TasksService {
         dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
         estimatedMinutes: dto.estimatedMinutes,
         status: 'TODO',
+        ...(agentExecutionId ? { agentExecutionId } : {}),
       },
     });
   }

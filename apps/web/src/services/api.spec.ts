@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { AUTH_SESSION_EXPIRED_EVENT, apiRequest } from './api';
+import { AUTH_SESSION_EXPIRED_EVENT, apiRequest, chatWithAgent } from './api';
 
 describe('apiRequest', () => {
   beforeEach(() => {
@@ -121,4 +121,30 @@ describe('apiRequest', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(window.localStorage.getItem('edutrack.refreshToken')).toBe('refresh-token');
   });
+
+  it('posts a chat message to the real Agent endpoint', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: {
+            conversationId: 'conversation-123',
+            response: { type: 'text', content: 'validated response' },
+          },
+        }),
+      ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await chatWithAgent('How am I doing?', 'conversation-123');
+
+    expect(result.data.conversationId).toBe('conversation-123');
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/ai/chat',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ message: 'How am I doing?', conversationId: 'conversation-123' }),
+      }),
+    );
+  });
+
 });

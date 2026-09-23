@@ -1,9 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { QueueService } from './queue.service';
+import { WeeklyReportJobPayload } from './report-contracts';
 
 @Injectable()
 export class ReportsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly queueService: QueueService
+  ) {}
 
   async generateWeeklyReport(userId: string) {
     const now = new Date();
@@ -15,22 +20,30 @@ export class ReportsService {
     periodEnd.setDate(periodStart.getDate() + 6);
     periodEnd.setHours(23, 59, 59, 999);
 
-    const existing = await this.prisma.weeklyReport.findFirst({
-      where: { userId, periodStart, periodEnd },
-    });
-
-    if (existing) {
-      return existing;
-    }
-
-    return this.prisma.weeklyReport.create({
-      data: {
+    const report = await this.prisma.weeklyReport.upsert({
+      where: {
+        userId_periodStart_periodEnd: { userId, periodStart, periodEnd },
+      },
+      create: {
         userId,
         periodStart,
         periodEnd,
         status: 'PENDING',
       },
+      update: {},
     });
+
+    // Enqueue the asynchronous pipeline processing
+    const payload: WeeklyReportJobPayload = {
+      reportId: report.id,
+      userId: report.userId,
+      periodStart: report.periodStart,
+      periodEnd: report.periodEnd,
+    };
+
+    await this.queueService.enqueueWeeklyReport(payload);
+
+    return report;
   }
 
   async listWeeklyReports(userId: string, limit: number) {
@@ -47,7 +60,7 @@ export class ReportsService {
     });
 
     if (!report) {
-      throw new NotFoundException('Relat√≥rio n√£o encontrado');
+      throw new NotFoundException('RelatÛrio n„o encontrado');
     }
 
     return report;
@@ -59,9 +72,10 @@ export class ReportsService {
     });
 
     if (!report) {
-      throw new NotFoundException('Relat√≥rio n√£o encontrado');
+      throw new NotFoundException('RelatÛrio n„o encontrado');
     }
 
     return report;
   }
 }
+

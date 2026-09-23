@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://edutrack.ai/schemas/v1/agent-analysis-response.json",
+  "title": "AgentAnalysisResponse",
+  "version": "1.0.0",
+  "description": "Resposta do Agent com analise, metricas e ChartSpecification opcional",
+  "type": "object",
+  "strict": true,
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "analysis",
+    "metrics"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "analysis",
+      "description": "Tipo de resposta: analise com metricas"
+    },
+    "analysis": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Texto da analise gerada pelo Agent"
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Metricas calculadas pelo Backend/Analytics",
+      "additionalProperties": true
+    },
+    "chart": {
+      "type": "object",
+      "description": "ChartSpecification opcional para visualizacao",
+      "$ref": "https://edutrack.ai/schemas/v1/chart-specification.json"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Metadados opcionais"
+    }
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://edutrack.ai/schemas/v1/chart-specification.json",
+  "title": "ChartSpecification",
+  "version": "1.0.0",
+  "description": "Contrato oficial para visualizacoes dinamicas geradas pelo Agent de IA",
+  "type": "object",
+  "strict": true,
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "title",
+    "xAxis",
+    "yAxis",
+    "series",
+    "data",
+    "source",
+    "datasetVersion"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "kpi",
+        "card",
+        "table",
+        "line",
+        "bar",
+        "area",
+        "donut",
+        "pie",
+        "scatter",
+        "comparison",
+        "heatmap"
+      ],
+      "description": "Tipo de visualizacao"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Titulo do grafico"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Descricao opcional do grafico"
+    },
+    "xAxis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field",
+        "label"
+      ],
+      "properties": {
+        "field": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Nome do campo nos dados para o eixo X"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Rotulo para exibicao no eixo X"
+        }
+      }
+    },
+    "yAxis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field",
+        "label"
+      ],
+      "properties": {
+        "field": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Nome do campo nos dados para o eixo Y"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Rotulo para exibicao no eixo Y"
+        }
+      }
+    },
+    "series": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "field",
+          "label"
+        ],
+        "properties": {
+          "field": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Nome do campo nos dados para a serie"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Rotulo para exibicao da serie"
+          }
+        }
+      }
+    },
+    "data": {
+      "type": "array",
+      "description": "Dados para renderizacao do grafico",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "filters": {
+      "type": "array",
+      "description": "Filtros aplicados aos dados",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool"
+      ],
+      "properties": {
+        "tool": {
+          "type": "string",
+          "enum": [
+            "get_dashboard_data",
+            "get_task_metrics",
+            "get_study_metrics"
+          ],
+          "description": "Tool autorizada que gerou o dataset"
+        }
+      }
+    },
+    "datasetVersion": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Versao do dataset para rastreabilidade"
+    }
+  }
+}

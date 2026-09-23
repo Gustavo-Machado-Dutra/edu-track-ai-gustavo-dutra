@@ -1,16 +1,21 @@
 import { useMemo, useState } from 'react';
+import { chatWithAgent, type AgentChatResponse } from '../services/api';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
+import { AgentChart } from '../components/AgentChart';
 import { useDashboard } from '../hooks/useDashboard';
 import { useSubjects } from '../hooks/useSubjects';
 import { useTasks } from '../hooks/useTasks';
-import type { Task } from '../types';
+import type { AgentStructuredResponse } from '../types/agent-responses';
+import type { ChartSpecification } from '../types/chart-specification';
 
 type Message = {
   id: number;
   role: 'assistant' | 'user';
   content: string;
   metadata?: string;
+  structuredData?: AgentStructuredResponse;
+  chartSpec?: ChartSpecification;
 };
 
 function formatStudyTime(totalMinutes: number) {
@@ -21,38 +26,50 @@ function formatStudyTime(totalMinutes: number) {
   return `${minutes}min`;
 }
 
-function getSuggestedResponse(prompt: string, tasks: Task[], subjectsCount: number, totalMinutes: number) {
-  const normalizedPrompt = prompt.toLocaleLowerCase('pt-BR');
-  const openTasks = tasks.filter((task) => task.status === 'TODO' || task.status === 'IN_PROGRESS');
-  const completedTasks = tasks.filter((task) => task.status === 'COMPLETED');
-  const overdueTasks = openTasks.filter((task) => task.dueDate && new Date(task.dueDate) < new Date());
-
-  if (normalizedPrompt.includes('tarefa') || normalizedPrompt.includes('pend')) {
-    if (openTasks.length === 0) return 'Você não tem tarefas pendentes no momento. Posso ajudar a planejar uma nova frente de estudo.';
-    const firstTask = openTasks[0];
-    if (!firstTask) return 'Você não tem tarefas pendentes no momento. Posso ajudar a planejar uma nova frente de estudo.';
-    return `Você tem ${openTasks.length} tarefa${openTasks.length === 1 ? '' : 's'} em aberto. A próxima recomendação é “${firstTask.title}”, de ${firstTask.subject.name}.`;
+function normalizeAgentResponse(response: AgentChatResponse['response']): {
+  content: string;
+  structuredData?: AgentStructuredResponse;
+  chartSpec?: ChartSpecification;
+  metadata?: string;
+} {
+  if (typeof response.content === 'string') {
+    return { content: response.content };
   }
 
-  if (normalizedPrompt.includes('progresso') || normalizedPrompt.includes('desempenho')) {
-    const completionRate = tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0;
-    return `Seu progresso por entregas está em ${completionRate}%, com ${completedTasks.length} tarefa${completedTasks.length === 1 ? '' : 's'} concluída${completedTasks.length === 1 ? '' : 's'} de ${tasks.length}.`;
+  if (!response.content || typeof response.content !== 'object') {
+    return { content: 'A resposta da IA n\u00e3o possui conte\u00fado exib\u00edvel.' };
   }
 
-  if (normalizedPrompt.includes('tempo') || normalizedPrompt.includes('estudo') || normalizedPrompt.includes('foco')) {
-    return `Você já registrou ${formatStudyTime(totalMinutes)} de estudo. ${totalMinutes > 0 ? 'Mantenha blocos regulares de foco para consolidar esse ritmo.' : 'Comece com um bloco curto de 25 minutos para ativar seu ritmo.'}`;
+  const structured = response.content as AgentStructuredResponse;
+  if (response.type === 'text' && structured.type === 'text') {
+    return {
+      content: structured.content,
+      structuredData: structured,
+      metadata: 'RESPOSTA VALIDADA PELO BACKEND',
+    };
   }
 
-  if (normalizedPrompt.includes('atras') || normalizedPrompt.includes('urgente')) {
-    const firstOverdueTask = overdueTasks[0];
-    return overdueTasks.length > 0
-      ? firstOverdueTask
-        ? `Encontrei ${overdueTasks.length} entrega${overdueTasks.length === 1 ? '' : 's'} atrasada${overdueTasks.length === 1 ? '' : 's'}. Recomendo priorizar “${firstOverdueTask.title}” antes de iniciar uma nova tarefa.`
-        : 'Não há entregas atrasadas identificadas. Seu radar acadêmico está limpo neste momento.'
-      : 'Não há entregas atrasadas identificadas. Seu radar acadêmico está limpo neste momento.';
+  if (response.type === 'analysis' && structured.type === 'analysis') {
+    const metrics = Object.entries(structured.metrics)
+      .map(([key, value]) => key + ': ' + (typeof value === 'string' ? value : JSON.stringify(value)))
+      .join(' \u00b7 ');
+    return {
+      content: metrics ? structured.analysis + ' ' + metrics : structured.analysis,
+      structuredData: structured,
+      chartSpec: structured.chart,
+      metadata: 'AN\u00c1LISE VALIDADA PELO BACKEND',
+    };
   }
 
-  return `Posso analisar suas tarefas, progresso e foco. No momento, acompanho ${subjectsCount} disciplina${subjectsCount === 1 ? '' : 's'} e ${openTasks.length} tarefa${openTasks.length === 1 ? '' : 's'} em aberto. Pergunte, por exemplo: “quais tarefas devo priorizar?”`;
+  if (response.type === 'action' && structured.type === 'action') {
+    return {
+      content: 'A\u00e7\u00e3o ' + structured.action + ' executada com sucesso.',
+      structuredData: structured,
+      metadata: 'A\u00c7\u00c3O VALIDADA PELO BACKEND',
+    };
+  }
+
+  return { content: 'A resposta da IA n\u00e3o corresponde a um contrato conhecido.' };
 }
 
 export function AIAssistantPage() {
@@ -61,6 +78,7 @@ export function AIAssistantPage() {
   const { dashboard, isLoading: isLoadingDashboard } = useDashboard();
   const [prompt, setPrompt] = useState('');
   const [isThinking, setIsThinking] = useState(false);
+  const [conversationId, setConversationId] = useState<string>();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -74,24 +92,47 @@ export function AIAssistantPage() {
   const isLoadingContext = isLoadingTasks || isLoadingSubjects || isLoadingDashboard;
   const activeTasks = useMemo(() => tasks.filter((task) => task.status === 'TODO' || task.status === 'IN_PROGRESS'), [tasks]);
 
-  const sendMessage = (value = prompt) => {
+  const sendMessage = async (value = prompt) => {
     const trimmedPrompt = value.trim();
-    if (!trimmedPrompt || isThinking || isLoadingContext) return;
+    if (!trimmedPrompt || isThinking) return;
 
     const userMessage: Message = { id: Date.now(), role: 'user', content: trimmedPrompt };
     setMessages((current) => [...current, userMessage]);
     setPrompt('');
     setIsThinking(true);
 
-    window.setTimeout(() => {
-      setMessages((current) => [...current, {
-        id: Date.now() + 1,
-        role: 'assistant',
-        content: getSuggestedResponse(trimmedPrompt, tasks, subjects.length, dashboard?.study.totalMinutes ?? 0),
-        metadata: 'ANÁLISE BASEADA NOS SEUS DADOS',
-      }]);
+    try {
+      const response = await chatWithAgent(trimmedPrompt, conversationId);
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      setConversationId(response.data.conversationId);
+      const normalized = normalizeAgentResponse(response.data.response);
+      setMessages((current) => [
+        ...current,
+        {
+          id: Date.now() + 1,
+          role: 'assistant',
+          content: normalized.content,
+          metadata: normalized.metadata ?? 'RESPOSTA GERADA PELO AGENT',
+          structuredData: normalized.structuredData,
+          chartSpec: normalized.chartSpec,
+        },
+      ]);
+    } catch (error) {
+      setMessages((current) => [
+        ...current,
+        {
+          id: Date.now() + 1,
+          role: 'assistant',
+          content: error instanceof Error ? error.message : 'N\u00e3o foi poss\u00edvel consultar o Agent.',
+          metadata: 'FALHA AO CONSULTAR O BACKEND',
+        },
+      ]);
+    } finally {
       setIsThinking(false);
-    }, 450);
+    }
   };
 
   return (
@@ -139,17 +180,17 @@ export function AIAssistantPage() {
           {messages.map((message) => (
             <article className={`ai-message ai-message-${message.role}`} key={message.id}>
               {message.role === 'assistant' && <span className="ai-message-avatar" aria-hidden="true">✦</span>}
-              <div className="ai-message-body"><p>{message.content}</p>{message.metadata && <small>{message.metadata}</small>}</div>
+              <div className="ai-message-body"><p>{message.content}</p>{message.chartSpec && <AgentChart spec={message.chartSpec} />}{message.metadata && <small>{message.metadata}</small>}</div>
             </article>
           ))}
           {isThinking && <article className="ai-message ai-message-assistant"><span className="ai-message-avatar" aria-hidden="true">✦</span><div className="ai-message-body ai-thinking"><span /><span /><span /></div></article>}
         </div>
         <div className="ai-quick-prompts" aria-label="Sugestões de perguntas">
-          {quickPrompts.map((quickPrompt) => <button type="button" key={quickPrompt} onClick={() => sendMessage(quickPrompt)} disabled={isThinking || isLoadingContext}>{quickPrompt}</button>)}
+          {quickPrompts.map((quickPrompt) => <button type="button" key={quickPrompt} onClick={() => void sendMessage(quickPrompt)} disabled={isThinking}>{quickPrompt}</button>)}
         </div>
-        <form className="ai-composer" onSubmit={(event) => { event.preventDefault(); sendMessage(); }}>
-          <input value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Pergunte algo sobre sua jornada acadêmica..." disabled={isThinking || isLoadingContext} aria-label="Mensagem para a IA" />
-          <Button type="submit" size="sm" isLoading={isThinking} disabled={!prompt.trim() || isLoadingContext} aria-label="Enviar mensagem"><span aria-hidden="true">↑</span></Button>
+        <form className="ai-composer" onSubmit={(event) => { event.preventDefault(); void sendMessage(); }}>
+          <input value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Pergunte algo sobre sua jornada acadêmica..." disabled={isThinking} aria-label="Mensagem para a IA" />
+          <Button type="submit" size="sm" isLoading={isThinking} disabled={!prompt.trim() || isThinking} aria-label="Enviar mensagem"><span aria-hidden="true">↑</span></Button>
         </form>
         <p className="ai-disclaimer">A IA interpreta seus dados disponíveis. Confirme informações importantes antes de tomar decisões.</p>
       </section>

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://edutrack.ai/schemas/v1/agent-action-response.json",
+  "title": "AgentActionResponse",
+  "version": "1.0.0",
+  "description": "Resposta do Agent confirmando execucao de Tool",
+  "type": "object",
+  "strict": true,
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "action",
+    "result"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "action",
+      "description": "Tipo de resposta: confirmacao de acao"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "create_task",
+        "update_task",
+        "complete_task",
+        "create_subject"
+      ],
+      "description": "Acao executada pelo Agent via Tool"
+    },
+    "result": {
+      "type": "object",
+      "description": "Resultado da execucao da Tool",
+      "additionalProperties": true
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Metadados opcionais"
+    }
+  }
+}
