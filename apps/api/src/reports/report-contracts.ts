@@ -22,7 +22,7 @@ export interface WeeklyReportAnalyticsDataset {
       bySubject: Record<string, number>;
     };
     subjectsCount: number;
-    recentSessions: any[];
+    recentSessions: Array<Record<string, unknown>>;
   };
 }
 
@@ -47,4 +47,5 @@ export interface IStorageProvider {
 export interface IPdfGenerator {
   generate(dataset: WeeklyReportAnalyticsDataset): Promise<Buffer>;
 }
+
 

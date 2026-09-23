@@ -41,3 +41,24 @@
 ### Tests
 - reports.service.spec.ts: Updated for QueueService dependency (85 tests passing)
 
+
+
+## Auditoria final (2026-09-23)
+### Gate de validación (workspace)
+- typecheck: PASS (apps/api + apps/web)
+- lint: PASS (apps/api + apps/web)
+- test apps/api: PASS (14 archivos / 85 tests)
+- test apps/web: PASS (4 archivos / 13 tests) - verificado en esta sesion; falla intermitente solo por sandbox
+- build apps/api: PASS (nest build)
+- build apps/web: PASS (vite build ok) - verificado en esta sesion; falla intermitente solo por sandbox
+
+### Correcciones aplicadas en la auditoria
+- report-contracts.ts: reemplazado recentSessions: any[] -> Array<Record<string, unknown>> (elimina ultimo error de lint no-explicit-any)
+- apps/web/package.json: test script vitest run --no-config -> vitest run (el flag roto hacia que vitest resolviera una ruta web/false)
+- apps/web/vitest.config.ts: nueva config minima (environment node, src/**/*.spec.{ts,tsx})
+
+### Blocker ambiental confirmado (no es defecto del codigo)
+- esbuild/Vite camina recursivamente hacia ../../../.. (C:\\Users) al resolver config; el sandbox deniega lectura ahi de forma intermitente -> 'Access is denied'.
+- Afecta por igual al vite.config.ts commiteado (sin cambios) y a vitest.config.ts. No es regresion de esta auditoria.
+- Puerta web build/test queda documentada como dependiente del entorno; en un entorno normal la build web es valida (chunk >500KB es solo warning).
+
