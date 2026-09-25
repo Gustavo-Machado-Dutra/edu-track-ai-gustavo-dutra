@@ -1,7 +1,7 @@
-﻿import { Controller, Post, Body, UseGuards, Request, HttpCode, HttpStatus } from "@nestjs/common";
+import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus } from "@nestjs/common";
 import { JwtAuthGuard } from "../../auth/jwt-auth.guard";
+import { CurrentUser } from "../../auth/current-user.decorator";
 import { AgentOrchestratorService } from "./agent-orchestrator.service";
-interface UserPayload { sub: string; email: string; }
 
 interface ChatRequest {
   message: string;
@@ -23,8 +23,8 @@ export class AgentController {
 
   @Post("chat")
   @HttpCode(HttpStatus.OK)
-  async chat(@Request() req: { user: UserPayload }, @Body() body: ChatRequest): Promise<ChatResponse> {
-    const userId = req.user.sub;
+  async chat(@CurrentUser() user: { id: string }, @Body() body: ChatRequest): Promise<ChatResponse> {
+    const userId = user.id;
     const { message, conversationId } = body;
 
     if (!message || typeof message !== "string" || !message.trim()) {

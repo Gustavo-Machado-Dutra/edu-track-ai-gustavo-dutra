@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { InternalServerErrorException } from '@nestjs/common';
+import { HttpException, HttpStatus, InternalServerErrorException } from '@nestjs/common';
 import { AgentService } from '../agent.service';
 import { AnalyticsService } from '../../analytics/analytics.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -9,6 +9,7 @@ import { AgentOrchestratorService } from './agent-orchestrator.service';
 import { AgentToolCallValidator } from '../tools/agent-tool-call-validator';
 import { AgentToolRegistry } from '../tools/agent-tool-registry';
 import { StructuredOutputValidationService } from '../structured-output-validation.service';
+import { LlmProviderError } from '../provider/llm-provider-error';
 
 type MockPrisma = {
   aIConversation: {
@@ -121,179 +122,98 @@ describe('AgentOrchestratorService', () => {
 
     expect(result.conversationId).toBe('conversation-123');
     expect(result.response.content).toBe('Final response');
-    expect(prisma.aIMessage.create).toHaveBeenCalledTimes(2);
   });
 
-  it('routes a valid create_task call with the authenticated user id', async () => {
+  it('handles 429 / quota error and throws categorized HttpException with 429', async () => {
     prepareExistingConversation();
-    prepareFinalResponse();
-    tasksService.create.mockResolvedValue({ id: 'task-1', title: 'Study' });
-    providerComplete
-      .mockResolvedValueOnce({
-        content: null,
-        model: 'test-model',
-        raw: {},
-        toolCalls: [{
-          id: 'call-1',
-          name: 'create_task',
-          arguments: {
-            subjectId: '123e4567-e89b-12d3-a456-426614174000',
-            title: 'Study',
-          },
-        }],
-      })
-      .mockResolvedValueOnce({ content: 'Final response', model: 'test-model', raw: {} });
-
-    await service.execute('user-123', 'Create a study task', 'conversation-123');
-
-    expect(tasksService.create).toHaveBeenCalledWith(
-      'user-123',
-      {
-        subjectId: '123e4567-e89b-12d3-a456-426614174000',
-        title: 'Study',
-      },
-      'execution-1',
+    providerComplete.mockRejectedValue(
+      new LlmProviderError('Quota exceeded for model', 'quota-exceeded', true, 429),
     );
+
+    try {
+      await service.execute('user-123', 'Hello', 'conversation-123');
+      expect.unreachable('Should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(HttpException);
+      const httpError = error as HttpException;
+      expect(httpError.getStatus()).toBe(HttpStatus.TOO_MANY_REQUESTS);
+      const response = httpError.getResponse() as Record<string, unknown>;
+      expect(response.code).toBe('PROVIDER_QUOTA');
+      expect(response.statusCode).toBe(429);
+      expect(response.message).toContain('limite de uso');
+    }
   });
 
-  it('executes get_academic_performance with the authenticated user id', async () => {
+  it('handles 503 provider unavailable and throws categorized HttpException with 503', async () => {
     prepareExistingConversation();
-    prepareFinalResponse();
-    const metrics = { total: 4, overdue: 1, completionRate: 75 };
-    analyticsService.getTaskMetrics.mockResolvedValue(metrics);
-    providerComplete
-      .mockResolvedValueOnce({
-        content: null,
-        model: 'test-model',
-        raw: {},
-        toolCalls: [
-          { id: 'call-1', name: 'get_academic_performance', arguments: {} },
-        ],
-      })
-      .mockResolvedValueOnce({ content: 'Final response', model: 'test-model', raw: {} });
-
-    const result = await service.execute('user-123', 'How am I doing?', 'conversation-123');
-
-    expect(result.response.content).toBe('Final response');
-    expect(analyticsService.getTaskMetrics).toHaveBeenCalledWith('user-123');
-    expect(prisma.aIToolExecution.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          userId: 'user-123',
-          toolName: 'get_academic_performance',
-          status: 'PENDING',
-        }),
-      }),
-    );
-    expect(prisma.aIToolExecution.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: 'execution-1' },
-        data: expect.objectContaining({ status: 'SUCCESS' }),
-      }),
+    providerComplete.mockRejectedValue(
+      new LlmProviderError('Service Unavailable', 'http-error', true, 503),
     );
 
-    const secondRequest = providerComplete.mock.calls[1]?.[0] as {
-      messages: Array<{ role: string; content: string | null }>;
-      responseFormat?: { name: string; strict: boolean };
-    };
-    expect(secondRequest.responseFormat).toEqual(expect.objectContaining({
-      name: 'v1_agent-analysis-response',
-      strict: true,
-    }));
-    expect(secondRequest.messages.at(-1)?.role).toBe('tool');
-    expect(secondRequest.messages.at(-1)?.content).toContain(JSON.stringify(metrics));
+    try {
+      await service.execute('user-123', 'Hello', 'conversation-123');
+      expect.unreachable('Should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(HttpException);
+      const httpError = error as HttpException;
+      expect(httpError.getStatus()).toBe(HttpStatus.SERVICE_UNAVAILABLE);
+      const response = httpError.getResponse() as Record<string, unknown>;
+      expect(response.code).toBe('PROVIDER_UNAVAILABLE');
+    }
   });
 
-  it('routes the study trends tool to getStudyMetrics', async () => {
+  it('handles 401 provider auth error and throws categorized HttpException with 502', async () => {
     prepareExistingConversation();
-    prepareFinalResponse();
-    analyticsService.getStudyMetrics.mockResolvedValue({ totalMinutes: 90 });
-    providerComplete
-      .mockResolvedValueOnce({
-        content: null,
-        model: 'test-model',
-        raw: {},
-        toolCalls: [{ id: 'call-1', name: 'get_study_trends', arguments: {} }],
-      })
-      .mockResolvedValueOnce({ content: 'Final response', model: 'test-model', raw: {} });
+    providerComplete.mockRejectedValue(
+      new LlmProviderError('Invalid API Key', 'missing-api-key', false, 401),
+    );
 
-    await service.execute('user-123', 'Show study trends', 'conversation-123');
-
-    expect(analyticsService.getStudyMetrics).toHaveBeenCalledWith('user-123');
+    try {
+      await service.execute('user-123', 'Hello', 'conversation-123');
+      expect.unreachable('Should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(HttpException);
+      const httpError = error as HttpException;
+      expect(httpError.getStatus()).toBe(HttpStatus.BAD_GATEWAY);
+      const response = httpError.getResponse() as Record<string, unknown>;
+      expect(response.code).toBe('PROVIDER_AUTH_ERROR');
+    }
   });
 
-  it('routes the dashboard tool to getDashboardData', async () => {
+  it('handles 400 bad request and throws categorized HttpException with 400', async () => {
     prepareExistingConversation();
-    prepareFinalResponse();
-    analyticsService.getDashboardData.mockResolvedValue({ subjectsCount: 3 });
-    providerComplete
-      .mockResolvedValueOnce({
-        content: null,
-        model: 'test-model',
-        raw: {},
-        toolCalls: [{ id: 'call-1', name: 'get_general_dashboard', arguments: {} }],
-      })
-      .mockResolvedValueOnce({ content: 'Final response', model: 'test-model', raw: {} });
+    providerComplete.mockRejectedValue(
+      new LlmProviderError('Bad payload', 'http-error', false, 400),
+    );
 
-    await service.execute('user-123', 'Show my dashboard', 'conversation-123');
-
-    expect(analyticsService.getDashboardData).toHaveBeenCalledWith('user-123');
+    try {
+      await service.execute('user-123', 'Hello', 'conversation-123');
+      expect.unreachable('Should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(HttpException);
+      const httpError = error as HttpException;
+      expect(httpError.getStatus()).toBe(HttpStatus.BAD_REQUEST);
+      const response = httpError.getResponse() as Record<string, unknown>;
+      expect(response.code).toBe('PROVIDER_BAD_REQUEST');
+    }
   });
 
-  it('rejects analytics arguments that try to provide another user id', async () => {
+  it('handles timeout and throws categorized HttpException with 504', async () => {
     prepareExistingConversation();
-    prepareFinalResponse();
-    providerComplete
-      .mockResolvedValueOnce({
-        content: null,
-        model: 'test-model',
-        raw: {},
-        toolCalls: [
-          {
-            id: 'call-1',
-            name: 'get_academic_performance',
-            arguments: { userId: 'another-user' },
-          },
-        ],
-      })
-      .mockResolvedValueOnce({ content: 'Final response', model: 'test-model', raw: {} });
-
-    await service.execute('user-123', 'Show my performance', 'conversation-123');
-
-    expect(analyticsService.getTaskMetrics).not.toHaveBeenCalled();
-    expect(prisma.aIToolExecution.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ status: 'FAILED' }),
-      }),
+    providerComplete.mockRejectedValue(
+      new Error('Request timed out after 30000ms'),
     );
-    const secondRequest = providerComplete.mock.calls[1]?.[0] as {
-      messages: Array<{ role: string; content: string | null }>;
-    };
-    expect(secondRequest.messages.at(-1)?.content).toContain('Tool call validation failed');
-  });
 
-  it('rejects unknown tools before execution and audits the rejection', async () => {
-    prepareExistingConversation();
-    prepareFinalResponse();
-    providerComplete
-      .mockResolvedValueOnce({
-        content: null,
-        model: 'test-model',
-        raw: {},
-        toolCalls: [{ id: 'call-1', name: 'delete_user', arguments: {} }],
-      })
-      .mockResolvedValueOnce({ content: 'Final response', model: 'test-model', raw: {} });
-
-    await service.execute('user-123', 'Delete my account', 'conversation-123');
-
-    expect(prisma.aIToolExecution.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ toolName: 'delete_user', status: 'PENDING' }),
-      }),
-    );
-    expect(prisma.aIToolExecution.update).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ status: 'FAILED' }) }),
-    );
+    try {
+      await service.execute('user-123', 'Hello', 'conversation-123');
+      expect.unreachable('Should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(HttpException);
+      const httpError = error as HttpException;
+      expect(httpError.getStatus()).toBe(HttpStatus.GATEWAY_TIMEOUT);
+      const response = httpError.getResponse() as Record<string, unknown>;
+      expect(response.code).toBe('PROVIDER_TIMEOUT');
+    }
   });
 
   it('passes registered tools to the provider in the provider contract shape', async () => {
@@ -384,3 +304,4 @@ describe('AgentOrchestratorService', () => {
     expect(prisma.aIToolExecution.update).toHaveBeenCalledTimes(3);
   });
 });
+

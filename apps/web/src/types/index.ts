@@ -1,4 +1,4 @@
-﻿export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 export type TaskDifficulty = 'EASY' | 'MEDIUM' | 'HARD';
 export type TaskCreator = 'USER' | 'AGENT' | 'SYSTEM';
@@ -54,6 +54,7 @@ export interface ApiResponse<T> {
   data: T;
   error?: {
     statusCode: number;
+    code?: string;
     message: string;
   };
 }

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { AUTH_SESSION_EXPIRED_EVENT, apiRequest, chatWithAgent } from './api';
+import { AUTH_SESSION_EXPIRED_EVENT, ApiClientError, apiRequest, chatWithAgent } from './api';
 
 describe('apiRequest', () => {
   beforeEach(() => {
@@ -32,12 +32,14 @@ describe('apiRequest', () => {
     expect(fetchMock).toHaveBeenCalledWith('/api/v1/health', expect.any(Object));
   });
 
-  it('explains when the API cannot be reached', async () => {
+  it('explains when the API cannot be reached with ApiClientError and NETWORK_ERROR', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
 
-    await expect(apiRequest('/health')).rejects.toThrow(
-      'NÃ£o foi possÃ­vel conectar Ã  API. Confirme que o servidor estÃ¡ em execuÃ§Ã£o.',
-    );
+    await expect(apiRequest('/health')).rejects.toThrow(ApiClientError);
+    await expect(apiRequest('/health')).rejects.toMatchObject({
+      code: 'NETWORK_ERROR',
+      message: 'Não foi possível conectar à API. Confirme que o servidor está em execução.',
+    });
   });
 
   it('returns a useful error when the API response is empty', async () => {
@@ -46,14 +48,61 @@ describe('apiRequest', () => {
     await expect(apiRequest('/health')).resolves.toEqual({
       error: {
         statusCode: 500,
-        message: 'A API nÃ£o respondeu. Confirme que o servidor estÃ¡ em execuÃ§Ã£o.',
+        code: 'SERVER_UNAVAILABLE',
+        message: 'A API não respondeu. Confirme que o servidor está em execução.',
       },
     });
+  });
+
+  it('correctly parses 429 quota errors from provider', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          error: {
+            statusCode: 429,
+            code: 'PROVIDER_QUOTA',
+            message: 'O limite de uso do provedor de IA foi temporariamente atingido.',
+          },
+        }),
+        { status: 429, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await chatWithAgent('Hello');
+
+    expect(result.error).toBeDefined();
+    expect(result.error?.statusCode).toBe(429);
+    expect(result.error?.code).toBe('PROVIDER_QUOTA');
+    expect(result.error?.message).toContain('limite de uso');
+  });
+
+  it('correctly parses 503 provider unavailable errors', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          error: {
+            statusCode: 503,
+            code: 'PROVIDER_UNAVAILABLE',
+            message: 'O provedor de inteligência artificial está temporariamente indisponível.',
+          },
+        }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await chatWithAgent('Hello');
+
+    expect(result.error).toBeDefined();
+    expect(result.error?.statusCode).toBe(503);
+    expect(result.error?.code).toBe('PROVIDER_UNAVAILABLE');
   });
 
   it('refreshes the session and retries a protected request after a 401', async () => {
     window.localStorage.setItem('edutrack.accessToken', 'expired-token');
     window.localStorage.setItem('edutrack.refreshToken', 'refresh-token');
+
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(
@@ -85,6 +134,7 @@ describe('apiRequest', () => {
   it('clears the session and emits an expiration event when refresh fails', async () => {
     window.localStorage.setItem('edutrack.accessToken', 'expired-token');
     window.localStorage.setItem('edutrack.refreshToken', 'invalid-refresh-token');
+
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(
@@ -93,7 +143,7 @@ describe('apiRequest', () => {
         }),
       )
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ error: { statusCode: 401, message: 'SessÃ£o invÃ¡lida' } }), {
+        new Response(JSON.stringify({ error: { statusCode: 401, message: 'Sessão inválida' } }), {
           status: 401,
         }),
       );
@@ -109,8 +159,9 @@ describe('apiRequest', () => {
 
   it('does not refresh authentication endpoints after a 401', async () => {
     window.localStorage.setItem('edutrack.refreshToken', 'refresh-token');
+
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ error: { statusCode: 401, message: 'Credenciais invÃ¡lidas' } }), {
+      new Response(JSON.stringify({ error: { statusCode: 401, message: 'Credenciais inválidas' } }), {
         status: 401,
       }),
     );
@@ -146,5 +197,4 @@ describe('apiRequest', () => {
       }),
     );
   });
-
 });

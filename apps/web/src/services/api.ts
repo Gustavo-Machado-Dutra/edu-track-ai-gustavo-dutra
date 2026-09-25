@@ -1,10 +1,21 @@
-Ôªøimport type { ApiResponse } from '../types';
+import type { ApiResponse } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
 const ACCESS_TOKEN_KEY = 'edutrack.accessToken';
 const REFRESH_TOKEN_KEY = 'edutrack.refreshToken';
 const USER_KEY = 'edutrack.user';
 export const AUTH_SESSION_EXPIRED_EVENT = 'edutrack:session-expired';
+
+export class ApiClientError extends Error {
+  constructor(
+    message: string,
+    public readonly statusCode?: number,
+    public readonly code?: string,
+  ) {
+    super(message);
+    this.name = 'ApiClientError';
+  }
+}
 
 type AuthSession = {
   accessToken: string;
@@ -61,21 +72,33 @@ async function parseResponse<T>(response: Response): Promise<ApiResponse<T>> {
     return {
       error: {
         statusCode: response.status,
+        code: response.status >= 500 ? 'SERVER_UNAVAILABLE' : 'EMPTY_RESPONSE',
         message:
           response.status >= 500
-            ? 'A API n√£o respondeu. Confirme que o servidor est√° em execu√ß√£o.'
+            ? 'A API n„o respondeu. Confirme que o servidor est· em execuÁ„o.'
             : 'A API retornou uma resposta vazia.',
       },
     } as ApiResponse<T>;
   }
 
   try {
-    return JSON.parse(body) as ApiResponse<T>;
+    const parsed = JSON.parse(body);
+    if (parsed.error && typeof parsed.error === 'object') {
+      return {
+        error: {
+          statusCode: parsed.error.statusCode || response.status,
+          code: parsed.error.code,
+          message: parsed.error.message || 'Erro ao processar solicitaÁ„o.',
+        },
+      } as ApiResponse<T>;
+    }
+    return parsed as ApiResponse<T>;
   } catch {
     return {
       error: {
         statusCode: response.status,
-        message: 'A API retornou uma resposta inv√°lida.',
+        code: 'INVALID_RESPONSE',
+        message: 'A API retornou uma resposta inv·lida.',
       },
     } as ApiResponse<T>;
   }
@@ -143,7 +166,11 @@ async function request<T>(path: string, init: RequestInit, canRefresh: boolean):
     });
   } catch (error) {
     if (error instanceof TypeError) {
-      throw new Error('N√£o foi poss√≠vel conectar √† API. Confirme que o servidor est√° em execu√ß√£o.');
+      throw new ApiClientError(
+        'N„o foi possÌvel conectar ‡ API. Confirme que o servidor est· em execuÁ„o.',
+        0,
+        'NETWORK_ERROR',
+      );
     }
 
     throw error;
@@ -199,7 +226,6 @@ export async function register(credentials: { name: string; email: string; passw
 
   return response;
 }
-
 
 export interface AgentChatResponse {
   conversationId: string;

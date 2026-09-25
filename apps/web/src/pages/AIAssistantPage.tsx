@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { chatWithAgent, type AgentChatResponse } from '../services/api';
+import { chatWithAgent, ApiClientError, type AgentChatResponse } from '../services/api';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { AgentChart } from '../components/AgentChart';
@@ -37,7 +37,7 @@ function normalizeAgentResponse(response: AgentChatResponse['response']): {
   }
 
   if (!response.content || typeof response.content !== 'object') {
-    return { content: 'A resposta da IA n\u00e3o possui conte\u00fado exib\u00edvel.' };
+    return { content: 'A resposta da IA n„o possui conte˙do exibÌvel.' };
   }
 
   const structured = response.content as AgentStructuredResponse;
@@ -52,24 +52,80 @@ function normalizeAgentResponse(response: AgentChatResponse['response']): {
   if (response.type === 'analysis' && structured.type === 'analysis') {
     const metrics = Object.entries(structured.metrics)
       .map(([key, value]) => key + ': ' + (typeof value === 'string' ? value : JSON.stringify(value)))
-      .join(' \u00b7 ');
+      .join(' ∑ ');
     return {
       content: metrics ? structured.analysis + ' ' + metrics : structured.analysis,
       structuredData: structured,
       chartSpec: structured.chart,
-      metadata: 'AN\u00c1LISE VALIDADA PELO BACKEND',
+      metadata: 'AN¡LISE VALIDADA PELO BACKEND',
     };
   }
 
   if (response.type === 'action' && structured.type === 'action') {
     return {
-      content: 'A\u00e7\u00e3o ' + structured.action + ' executada com sucesso.',
+      content: 'AÁ„o ' + structured.action + ' executada com sucesso.',
       structuredData: structured,
-      metadata: 'A\u00c7\u00c3O VALIDADA PELO BACKEND',
+      metadata: 'A«√O VALIDADA PELO BACKEND',
     };
   }
 
-  return { content: 'A resposta da IA n\u00e3o corresponde a um contrato conhecido.' };
+  return { content: 'A resposta da IA n„o corresponde a um contrato conhecido.' };
+}
+
+function formatAgentErrorMessage(error: unknown, responseError?: { statusCode?: number; code?: string; message?: string }): {
+  content: string;
+  metadata: string;
+} {
+  const statusCode = responseError?.statusCode ?? (error instanceof ApiClientError ? error.statusCode : undefined);
+  const code = responseError?.code ?? (error instanceof ApiClientError ? error.code : undefined);
+  const rawMessage = (responseError?.message ?? (error instanceof Error ? error.message : String(error))).toLowerCase();
+
+  if (statusCode === 429 || code === 'PROVIDER_QUOTA' || rawMessage.includes('quota') || rawMessage.includes('rate limit')) {
+    return {
+      content: 'Temporariamente n„o foi possÌvel consultar o assistente porque o limite de uso do provedor foi atingido. Tente novamente mais tarde.',
+      metadata: 'LIMITE DE USO ATINGIDO (QUOTA)',
+    };
+  }
+
+  if (statusCode === 503 || statusCode === 502 || code === 'PROVIDER_UNAVAILABLE') {
+    return {
+      content: 'O provedor de inteligÍncia artificial est· temporariamente indisponÌvel. Tente novamente em alguns instantes.',
+      metadata: 'PROVEDOR DE IA INDISPONÕVEL',
+    };
+  }
+
+  if (statusCode === 401 || statusCode === 403 || code === 'UNAUTHORIZED' || code === 'PROVIDER_AUTH_ERROR') {
+    return {
+      content: 'Sua sess„o expirou ou vocÍ n„o tem permiss„o para realizar esta operaÁ„o. FaÁa login novamente.',
+      metadata: 'AUTENTICA«√O NECESS¡RIA',
+    };
+  }
+
+  if (statusCode === 400 || code === 'PROVIDER_BAD_REQUEST') {
+    return {
+      content: 'A mensagem enviada n„o pÙde ser processada pelo assistente. Verifique os dados e tente novamente.',
+      metadata: 'SOLICITA«√O INV¡LIDA',
+    };
+  }
+
+  if (statusCode === 504 || code === 'PROVIDER_TIMEOUT') {
+    return {
+      content: 'O tempo limite para resposta do assistente foi excedido. Tente novamente em instantes.',
+      metadata: 'TEMPO LIMITE EXCEDIDO',
+    };
+  }
+
+  if (code === 'NETWORK_ERROR' || rawMessage.includes('conectar') || rawMessage.includes('failed to fetch')) {
+    return {
+      content: 'N„o foi possÌvel conectar ao servidor. Confirme que a API est· em execuÁ„o.',
+      metadata: 'SERVIDOR INDISPONÕVEL',
+    };
+  }
+
+  return {
+    content: responseError?.message || (error instanceof Error ? error.message : 'Ocorreu um erro ao processar sua solicitaÁ„o no servidor.'),
+    metadata: 'ERRO AO PROCESSAR',
+  };
 }
 
 export function AIAssistantPage() {
@@ -83,12 +139,12 @@ export function AIAssistantPage() {
     {
       id: 1,
       role: 'assistant',
-      content: 'Ol√°! Sou seu copiloto acad√™mico. Posso analisar seu progresso, encontrar prioridades e ajudar a organizar o pr√≥ximo passo da sua miss√£o.',
-      metadata: 'ASSISTENTE ONLINE ¬∑ CONTEXTO LOCAL',
+      content: 'Ol·! Sou seu copiloto acadÍmico. Posso analisar seu progresso, encontrar prioridades e ajudar a organizar o prÛximo passo da sua miss„o.',
+      metadata: 'ASSISTENTE ONLINE ∑ CONTEXTO LOCAL',
     },
   ]);
 
-  const quickPrompts = ['O que devo priorizar?', 'Como est√° meu progresso?', 'Quanto tempo estudei?'];
+  const quickPrompts = ['O que devo priorizar?', 'Como est· meu progresso?', 'Quanto tempo estudei?'];
   const isLoadingContext = isLoadingTasks || isLoadingSubjects || isLoadingDashboard;
   const activeTasks = useMemo(() => tasks.filter((task) => task.status === 'TODO' || task.status === 'IN_PROGRESS'), [tasks]);
 
@@ -104,7 +160,17 @@ export function AIAssistantPage() {
     try {
       const response = await chatWithAgent(trimmedPrompt, conversationId);
       if (response.error) {
-        throw new Error(response.error.message);
+        const errorInfo = formatAgentErrorMessage(null, response.error);
+        setMessages((current) => [
+          ...current,
+          {
+            id: Date.now() + 1,
+            role: 'assistant',
+            content: errorInfo.content,
+            metadata: errorInfo.metadata,
+          },
+        ]);
+        return;
       }
 
       setConversationId(response.data.conversationId);
@@ -121,13 +187,14 @@ export function AIAssistantPage() {
         },
       ]);
     } catch (error) {
+      const errorInfo = formatAgentErrorMessage(error);
       setMessages((current) => [
         ...current,
         {
           id: Date.now() + 1,
           role: 'assistant',
-          content: error instanceof Error ? error.message : 'N\u00e3o foi poss\u00edvel consultar o Agent.',
-          metadata: 'FALHA AO CONSULTAR O BACKEND',
+          content: errorInfo.content,
+          metadata: errorInfo.metadata,
         },
       ]);
     } finally {
@@ -139,25 +206,25 @@ export function AIAssistantPage() {
     <main className="app-shell ai-page">
       <header className="page-header ai-page-header">
         <div>
-          <p className="eyebrow">Intelig√™ncia acad√™mica</p>
+          <p className="eyebrow">InteligÍncia acadÍmica</p>
           <h1>Seu copiloto de estudos.</h1>
-          <p className="page-description">Pergunte, analise e transforme dados em pr√≥ximos passos claros.</p>
+          <p className="page-description">Pergunte, analise e transforme dados em prÛximos passos claros.</p>
         </div>
         <span className={`ai-live-status ${isLoadingContext ? 'ai-live-status-loading' : ''}`}><i /> {isLoadingContext ? 'SINCRONIZANDO DADOS' : 'IA ONLINE'}</span>
       </header>
 
       <section className="ai-overview-grid" aria-label="Resumo do assistente">
         <Card className="ai-hero-card" padding="lg">
-          <div className="ai-hero-orbit" aria-hidden="true"><span>‚ú¶</span><i /><i /></div>
+          <div className="ai-hero-orbit" aria-hidden="true"><span>?</span><i /><i /></div>
           <div className="ai-hero-copy">
             <p className="eyebrow">Central de comando</p>
-            <h2>Clareza para o pr√≥ximo passo.</h2>
-            <p>Use o contexto da sua rotina acad√™mica para descobrir prioridades, entender seu ritmo e agir com inten√ß√£o.</p>
+            <h2>Clareza para o prÛximo passo.</h2>
+            <p>Use o contexto da sua rotina acadÍmica para descobrir prioridades, entender seu ritmo e agir com intenÁ„o.</p>
           </div>
           <div className="ai-capabilities">
-            <span><b>‚óå</b> Analisar progresso</span>
-            <span><b>‚åÅ</b> Priorizar tarefas</span>
-            <span><b>Ôºã</b> Planejar seu foco</span>
+            <span><b>?</b> Analisar progresso</span>
+            <span><b>?</b> Priorizar tarefas</span>
+            <span><b>+</b> Planejar seu foco</span>
           </div>
         </Card>
         <Card className="ai-context-card" padding="md">
@@ -173,26 +240,26 @@ export function AIAssistantPage() {
 
       <section className="ai-chat-card" aria-label="Conversa com o assistente">
         <div className="ai-chat-header">
-          <div className="ai-chat-identity"><span className="ai-avatar" aria-hidden="true">‚ú¶</span><div><strong>EduTrack Copilot</strong><small>Seu assistente operacional e anal√≠tico</small></div></div>
-          <span className="ai-session-label">SESS√ÉO ATUAL</span>
+          <div className="ai-chat-identity"><span className="ai-avatar" aria-hidden="true">?</span><div><strong>EduTrack Copilot</strong><small>Seu assistente operacional e analÌtico</small></div></div>
+          <span className="ai-session-label">SESS√O ATUAL</span>
         </div>
         <div className="ai-messages" aria-live="polite">
           {messages.map((message) => (
             <article className={`ai-message ai-message-${message.role}`} key={message.id}>
-              {message.role === 'assistant' && <span className="ai-message-avatar" aria-hidden="true">‚ú¶</span>}
+              {message.role === 'assistant' && <span className="ai-message-avatar" aria-hidden="true">?</span>}
               <div className="ai-message-body"><p>{message.content}</p>{message.chartSpec && <AgentChart spec={message.chartSpec} />}{message.metadata && <small>{message.metadata}</small>}</div>
             </article>
           ))}
-          {isThinking && <article className="ai-message ai-message-assistant"><span className="ai-message-avatar" aria-hidden="true">‚ú¶</span><div className="ai-message-body ai-thinking"><span /><span /><span /></div></article>}
+          {isThinking && <article className="ai-message ai-message-assistant"><span className="ai-message-avatar" aria-hidden="true">?</span><div className="ai-message-body ai-thinking"><span /><span /><span /></div></article>}
         </div>
-        <div className="ai-quick-prompts" aria-label="Sugest√µes de perguntas">
+        <div className="ai-quick-prompts" aria-label="Sugestıes de perguntas">
           {quickPrompts.map((quickPrompt) => <button type="button" key={quickPrompt} onClick={() => void sendMessage(quickPrompt)} disabled={isThinking}>{quickPrompt}</button>)}
         </div>
         <form className="ai-composer" onSubmit={(event) => { event.preventDefault(); void sendMessage(); }}>
-          <input value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Pergunte algo sobre sua jornada acad√™mica..." disabled={isThinking} aria-label="Mensagem para a IA" />
-          <Button type="submit" size="sm" isLoading={isThinking} disabled={!prompt.trim() || isThinking} aria-label="Enviar mensagem"><span aria-hidden="true">‚Üë</span></Button>
+          <input value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Pergunte algo sobre sua jornada acadÍmica..." disabled={isThinking} aria-label="Mensagem para a IA" />
+          <Button type="submit" size="sm" isLoading={isThinking} disabled={!prompt.trim() || isThinking} aria-label="Enviar mensagem"><span aria-hidden="true">?</span></Button>
         </form>
-        <p className="ai-disclaimer">A IA interpreta seus dados dispon√≠veis. Confirme informa√ß√µes importantes antes de tomar decis√µes.</p>
+        <p className="ai-disclaimer">A IA interpreta seus dados disponÌveis. Confirme informaÁıes importantes antes de tomar decisıes.</p>
       </section>
     </main>
   );

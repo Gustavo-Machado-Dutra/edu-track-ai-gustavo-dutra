@@ -1,4 +1,11 @@
-import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { ErrorObject } from 'ajv';
 import { Prisma, TaskStatus } from '@prisma/client';
 import { AgentService, AgentResponseType, ProcessedAIResponse } from '../agent.service';
@@ -16,7 +23,10 @@ import {
   LlmProviderAdapter,
   LlmResult,
   LlmTool,
+  StructuredOutputSpec,
 } from '../provider/llm-provider-adapter';
+import { loadLlmProviderConfig } from '../provider/llm-provider-config';
+import { LlmProviderError } from '../provider/llm-provider-error';
 
 interface ToolResult {
   id: string;
@@ -29,6 +39,7 @@ interface ToolResult {
 @Injectable()
 export class AgentOrchestratorService {
   private readonly MAX_ITERATIONS = 3;
+  private readonly logger = new Logger(AgentOrchestratorService.name);
 
   constructor(
     private readonly agentService: AgentService,
@@ -46,6 +57,12 @@ export class AgentOrchestratorService {
     message: string,
     conversationId?: string,
   ): Promise<{ conversationId: string; response: ProcessedAIResponse }> {
+    const requestId = `agent-req-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const startTime = Date.now();
+    const providerConfig = loadLlmProviderConfig((key) => process.env[key]);
+    const provider = providerConfig.provider;
+    const model = providerConfig.model;
+
     let currentConversationId = conversationId;
     const conversation = conversationId
       ? await this.prisma.aIConversation.findFirst({
@@ -83,14 +100,19 @@ export class AgentOrchestratorService {
     while (iteration < this.MAX_ITERATIONS) {
       iteration += 1;
 
-      const llmResponse = await this.providerAdapter.complete({
-        model: 'qwen/qwen3-coder:free',
-        messages,
-        tools: this.getProviderTools(),
-        responseFormat: expectedResponseType
-          ? this.getResponseFormat(expectedResponseType)
-          : undefined,
-      });
+      let llmResponse: LlmResult;
+      try {
+        llmResponse = await this.providerAdapter.complete({
+          model,
+          messages,
+          tools: expectedResponseType ? undefined : this.getProviderTools(),
+          responseFormat: expectedResponseType
+            ? this.getResponseFormat(expectedResponseType)
+            : undefined,
+        });
+      } catch (error) {
+        this.handleProviderError(error, requestId, provider, model, startTime);
+      }
 
       if (!llmResponse.toolCalls || llmResponse.toolCalls.length === 0) {
         finalResponse = llmResponse;
@@ -140,61 +162,84 @@ export class AgentOrchestratorService {
           result = {
             id: call.id,
             name: call.name,
-            error: 'Tool call validation failed',
-            errors: validation.errors,
+            error: 'Schema validation failed',
+            errors: validation.errors ?? [],
           };
+          await this.prisma.aIToolExecution.update({
+            where: { id: execution.id },
+            data: {
+              status: 'FAILED',
+              outputJson: this.toJsonValue({
+                error: result.error,
+                errors: result.errors,
+              }),
+              completedAt: new Date(),
+            },
+          });
+        } else if (!definition) {
+          result = {
+            id: call.id,
+            name: call.name,
+            error: `Unauthorized or unregistered tool: ${call.name}`,
+          };
+          await this.prisma.aIToolExecution.update({
+            where: { id: execution.id },
+            data: {
+              status: 'FAILED',
+              outputJson: this.toJsonValue({ error: result.error }),
+              completedAt: new Date(),
+            },
+          });
         } else {
           try {
+            const output = await this.executeTool(
+              call.name,
+              call.arguments,
+              userId,
+              execution.id,
+            );
             result = {
               id: call.id,
               name: call.name,
-              result: await this.executeTool(
-                call.name,
-                userId,
-                call.arguments,
-                execution.id,
-              ),
+              result: output,
             };
+            await this.prisma.aIToolExecution.update({
+              where: { id: execution.id },
+              data: {
+                status: 'SUCCESS',
+                outputJson: this.toJsonValue(output),
+                completedAt: new Date(),
+              },
+            });
           } catch (error) {
             result = {
               id: call.id,
               name: call.name,
               error: error instanceof Error ? error.message : 'Tool execution failed',
             };
+            await this.prisma.aIToolExecution.update({
+              where: { id: execution.id },
+              data: {
+                status: 'FAILED',
+                outputJson: this.toJsonValue({ error: result.error }),
+                completedAt: new Date(),
+              },
+            });
           }
         }
 
-        await this.prisma.aIToolExecution.update({
-          where: { id: execution.id },
-          data: {
-            outputJson: this.toJsonValue(
-              result.error
-                ? { error: result.error, errors: result.errors }
-                : result.result,
-            ),
-            status: result.error ? 'FAILED' : 'SUCCESS',
-            completedAt: new Date(),
-          },
+        messages.push({
+          role: 'tool',
+          name: result.name,
+          tool_call_id: result.id,
+          content: JSON.stringify(result.error ? { error: result.error } : result.result),
         });
-
-        const toolMessage = {
-          ...result,
-          tool_call_id: call.id,
-          executionId: execution.id,
-        };
-        const toolContent = JSON.stringify(toolMessage);
-
         await this.prisma.aIMessage.create({
           data: {
             conversationId: currentConversationId!,
             role: 'TOOL',
-            content: toolContent,
+            content: JSON.stringify(result),
           },
-        });
-        messages.push({
-          role: 'tool',
-          content: toolContent,
-          tool_call_id: call.id,
         });
       }
     }
@@ -238,74 +283,184 @@ export class AgentOrchestratorService {
       },
     });
 
+    const totalLatency = Date.now() - startTime;
+    this.logger.log(
+      `[AgentOrchestrator] requestId=${requestId} provider=${provider} model=${model} operation=chat status=200 latency=${totalLatency}ms iterations=${iteration}`,
+    );
+
     return {
       conversationId: currentConversationId!,
       response: processed,
     };
   }
 
+  private handleProviderError(
+    error: unknown,
+    requestId: string,
+    provider: string,
+    model: string,
+    startTime: number,
+  ): never {
+    const latency = Date.now() - startTime;
+    const isLlmError = error instanceof LlmProviderError;
+    const rawStatus = isLlmError ? error.status : undefined;
+    const rawMessage = (error instanceof Error ? error.message : String(error)).toLowerCase();
 
-  private getResponseFormat(expectedType: AgentResponseType) {
-    const schemaName = expectedType === 'action'
-      ? 'v1_agent-action-response'
-      : 'v1_agent-analysis-response';
-    const schema = this.validationService.getSchema(schemaName);
+    let httpStatus: HttpStatus;
+    let errorCode: string;
+    let userMessage: string;
+    let errorCategory: string;
+
+    if (
+      rawStatus === 429 ||
+      rawMessage.includes('quota') ||
+      rawMessage.includes('rate limit') ||
+      rawMessage.includes('resource_exhausted') ||
+      (isLlmError && error.code === 'quota-exceeded')
+    ) {
+      httpStatus = HttpStatus.TOO_MANY_REQUESTS;
+      errorCode = 'PROVIDER_QUOTA';
+      userMessage = 'O limite de uso do provedor de IA foi temporariamente atingido.';
+      errorCategory = 'EXTERNAL_PROVIDER_QUOTA';
+    } else if (
+      rawStatus === 503 ||
+      rawStatus === 502 ||
+      (isLlmError && error.code === 'empty-response')
+    ) {
+      httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
+      errorCode = 'PROVIDER_UNAVAILABLE';
+      userMessage = 'O provedor de inteligência artificial está temporariamente indisponível.';
+      errorCategory = 'EXTERNAL_PROVIDER_UNAVAILABLE';
+    } else if (
+      rawStatus === 401 ||
+      rawStatus === 403 ||
+      (isLlmError && error.code === 'missing-api-key')
+    ) {
+      httpStatus = HttpStatus.BAD_GATEWAY;
+      errorCode = 'PROVIDER_AUTH_ERROR';
+      userMessage = 'Erro de autenticação com o provedor de IA.';
+      errorCategory = 'EXTERNAL_PROVIDER_AUTH_ERROR';
+    } else if (rawStatus === 400) {
+      httpStatus = HttpStatus.BAD_REQUEST;
+      errorCode = 'PROVIDER_BAD_REQUEST';
+      userMessage = 'Requisição inválida enviada ao provedor de IA.';
+      errorCategory = 'EXTERNAL_PROVIDER_BAD_REQUEST';
+    } else if (
+      rawMessage.includes('timeout') ||
+      rawMessage.includes('timed out') ||
+      rawMessage.includes('aborted')
+    ) {
+      httpStatus = HttpStatus.GATEWAY_TIMEOUT;
+      errorCode = 'PROVIDER_TIMEOUT';
+      userMessage = 'Tempo limite esgotado ao consultar o provedor de IA.';
+      errorCategory = 'EXTERNAL_PROVIDER_TIMEOUT';
+    } else {
+      httpStatus = HttpStatus.BAD_GATEWAY;
+      errorCode = 'PROVIDER_ERROR';
+      userMessage = 'Erro na comunicação com o provedor de IA.';
+      errorCategory = 'EXTERNAL_PROVIDER_ERROR';
+    }
+
+    this.logger.error(
+      `[AgentOrchestrator] requestId=${requestId} provider=${provider} model=${model} operation=chat status=${httpStatus} errorCategory=${errorCategory} latency=${latency}ms - ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
+
+    throw new HttpException(
+      {
+        statusCode: httpStatus,
+        code: errorCode,
+        message: userMessage,
+        error: httpStatus === 429 ? 'Too Many Requests' : 'AI Provider Error',
+      },
+      httpStatus,
+    );
+  }
+
+  private restoreMessages(
+    history: Array<{ role: string; content: string }>,
+  ): LlmMessage[] {
+    return history.map((message) => {
+      if (message.role === 'USER') {
+        return { role: 'user', content: message.content };
+      }
+      if (message.role === 'ASSISTANT') {
+        try {
+          const parsed = JSON.parse(message.content) as {
+            content?: string;
+            toolCalls?: LlmResult['toolCalls'];
+          };
+          return {
+            role: 'assistant',
+            content: parsed.content ?? null,
+            tool_calls: parsed.toolCalls,
+          };
+        } catch {
+          return { role: 'assistant', content: message.content };
+        }
+      }
+      if (message.role === 'TOOL') {
+        try {
+          const parsed = JSON.parse(message.content) as ToolResult;
+          return {
+            role: 'tool',
+            name: parsed.name,
+            tool_call_id: parsed.id,
+            content: JSON.stringify(
+              parsed.error ? { error: parsed.error } : parsed.result,
+            ),
+          };
+        } catch {
+          return { role: 'tool', content: message.content };
+        }
+      }
+      return { role: 'user', content: message.content };
+    });
+  }
+
+  private getProviderTools(): LlmTool[] {
+    return this.toolRegistry.list().map((tool) => ({
+      type: 'function',
+      function: {
+        name: tool.name,
+        description: tool.description,
+        parameters: tool.inputSchema,
+      },
+    }));
+  }
+
+  private getResponseFormat(
+    expectedResponseType: AgentResponseType,
+  ): StructuredOutputSpec {
+    const primarySchemaName =
+      expectedResponseType === 'action'
+        ? 'v1_agent-action-response'
+        : 'v1_agent-analysis-response';
+    const fallbackSchemaName =
+      expectedResponseType === 'action'
+        ? 'agent-action.response'
+        : 'agent-analysis.response';
+
+    const schema =
+      this.validationService.getSchema(primarySchemaName) ??
+      this.validationService.getSchema(fallbackSchemaName);
+
     if (!schema) {
       throw new InternalServerErrorException(
-        'AI Configuration Error: ' + schemaName + ' not found',
+        'AI Configuration Error: ' + primarySchemaName + ' not found',
       );
     }
     return {
-      name: schemaName,
+      name: primarySchemaName,
       strict: true,
       schema,
     };
   }
 
-  private restoreMessages(
-    storedMessages: Array<{ role: string; content: string }>,
-  ): LlmMessage[] {
-    return storedMessages.map((storedMessage) => {
-      if (storedMessage.role === 'TOOL') {
-        let toolCallId: string | undefined;
-        try {
-          const parsed = JSON.parse(storedMessage.content) as { tool_call_id?: unknown };
-          if (typeof parsed.tool_call_id === 'string') {
-            toolCallId = parsed.tool_call_id;
-          }
-        } catch {
-          toolCallId = undefined;
-        }
-        return {
-          role: 'tool',
-          content: storedMessage.content,
-          ...(toolCallId ? { tool_call_id: toolCallId } : {}),
-        };
-      }
-
-      return {
-        role: storedMessage.role.toLowerCase() as LlmMessage['role'],
-        content: storedMessage.content,
-      };
-    });
-  }
-
-  private getProviderTools(): LlmTool[] {
-    return this.toolRegistry.list().map((definition) => ({
-      type: 'function',
-      function: {
-        name: definition.name,
-        description: definition.description,
-        parameters: definition.inputSchema,
-      },
-    }));
-  }
-
   private async executeTool(
     name: string,
-    userId: string,
     toolArguments: Record<string, unknown>,
-    executionId: string,
+    userId: string,
+    executionId?: string,
   ): Promise<unknown> {
     switch (name) {
       case 'create_task':

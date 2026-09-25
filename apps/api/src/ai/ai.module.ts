@@ -8,13 +8,23 @@ import { AgentOrchestratorService } from './orchestrator/agent-orchestrator.serv
 import { AgentController } from './orchestrator/agent.controller';
 import { LLM_PROVIDER_ADAPTER } from './provider/llm-provider-adapter';
 import { OpenRouterProviderAdapter } from './provider/openrouter-provider-adapter';
+import { GoogleGeminiProviderAdapter } from './provider/google-gemini-provider-adapter';
+import { loadLlmProviderConfig, LlmProviderConfig } from './provider/llm-provider-config';
 import { AnalyticsModule } from '../analytics/analytics.module';
 import { TasksModule } from '../tasks/tasks.module';
 
 const llmProviderAdapter: Provider = {
   provide: LLM_PROVIDER_ADAPTER,
-  useFactory: (configService: ConfigService) =>
-    new OpenRouterProviderAdapter((key) => configService.get<string>(key)),
+  useFactory: (configService: ConfigService) => {
+    const getEnv = (key: string) => configService.get<string>(key);
+    const config: LlmProviderConfig = loadLlmProviderConfig(getEnv);
+
+    if (config.provider === 'google-gemini') {
+      return new GoogleGeminiProviderAdapter();
+    }
+
+    return new OpenRouterProviderAdapter(getEnv);
+  },
   inject: [ConfigService],
 };
 
@@ -24,7 +34,10 @@ const llmProviderAdapter: Provider = {
   providers: [
     StructuredOutputValidationService,
     AgentService,
-    AgentToolRegistry,
+    {
+      provide: AgentToolRegistry,
+      useFactory: () => new AgentToolRegistry(),
+    },
     AgentToolCallValidator,
     AgentOrchestratorService,
     llmProviderAdapter,

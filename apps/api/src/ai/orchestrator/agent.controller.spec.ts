@@ -19,7 +19,7 @@ describe('AgentController', () => {
 
   it('returns a client response when the message is empty', async () => {
     const result = await controller.chat(
-      { user: { sub: 'user-123', email: 'student@example.com' } },
+      { id: 'user-123' },
       { message: '  ', conversationId: 'conversation-123' },
     );
 
@@ -34,7 +34,7 @@ describe('AgentController', () => {
     });
 
     const result = await controller.chat(
-      { user: { sub: 'user-123', email: 'student@example.com' } },
+      { id: 'user-123' },
       { message: '  Hi  ', conversationId: 'conversation-123' },
     );
 
